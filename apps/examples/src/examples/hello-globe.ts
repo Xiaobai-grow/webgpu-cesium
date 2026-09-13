@@ -6,6 +6,7 @@ import {
   CesiumMath,
   Credit,
   EllipsoidTerrainProvider,
+  JulianDate,
   WebMercatorTilingScheme,
 } from "@webgpu-cesium/core"
 import { Globe, GridImageryProvider } from "@webgpu-cesium/scene"
@@ -47,6 +48,7 @@ export async function run(canvas: HTMLCanvasElement): Promise<ExampleCleanup> {
       orientation: { heading: 0, pitch: -CesiumMath.PI_OVER_TWO, roll: 0 },
     })
   }
+  viewer.scene.clock.currentTime = JulianDate.fromIso8601("2024-06-21T12:00:00Z")
   applyView("space")
   window.helloGlobeSetView = (name) => {
     if (name === "space" || name === "country" || name === "city") {

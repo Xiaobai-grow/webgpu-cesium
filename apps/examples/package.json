@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@webgpu-cesium/core": "workspace:*",
+    "@webgpu-cesium/environment": "workspace:*",
     "@webgpu-cesium/renderer": "workspace:*",
     "@webgpu-cesium/rhi": "workspace:*",
     "@webgpu-cesium/scene": "workspace:*",

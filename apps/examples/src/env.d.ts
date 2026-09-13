@@ -3,6 +3,8 @@
 interface Window {
   helloGlobeSetView?: (name: string) => void
   helloTerrainSetView?: (name: string) => void
+  atmosphereEarthSetTime?: (name: string) => void
+  atmosphereEarthSetView?: (name: string) => void
 }
 
 declare module "*.vue" {

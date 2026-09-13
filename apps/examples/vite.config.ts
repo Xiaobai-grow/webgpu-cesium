@@ -11,6 +11,7 @@ const workspaceAlias = {
   "@webgpu-cesium/rhi": `${root}packages/rhi/src/index.ts`,
   "@webgpu-cesium/shaders": `${root}packages/shaders/src/index.ts`,
   "@webgpu-cesium/renderer": `${root}packages/renderer/src/index.ts`,
+  "@webgpu-cesium/environment": `${root}packages/environment/src/index.ts`,
   "@webgpu-cesium/scene": `${root}packages/scene/src/index.ts`,
   "@webgpu-cesium/widgets": `${root}packages/widgets/src/index.ts`,
 }

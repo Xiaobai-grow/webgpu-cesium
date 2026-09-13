@@ -51,6 +51,20 @@ export const EXAMPLES: readonly ExampleEntry[] = [
     query: { terrain: "mars3d" },
     load: () => import("./hello-terrain"),
   },
+  {
+    id: "atmosphere-earth",
+    title: "Atmosphere / Earth",
+    description: "Hillaire 大气 + 日盘 / 月盘 / 星空，正午 / 日落 / 夜晚",
+    milestone: "M4",
+    load: () => import("./atmosphere-earth"),
+  },
+  {
+    id: "material-spheres",
+    title: "Materials / Spheres",
+    description: "MeshStandard / Physical 金属-粗糙度-清漆网格（G-buffer）",
+    milestone: "M4",
+    load: () => import("./material-spheres"),
+  },
 ]
 
 export function findExample(id: string): ExampleEntry | undefined {
