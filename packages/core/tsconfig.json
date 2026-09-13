@@ -5,5 +5,6 @@
     "lib": ["ES2022"],
     "types": []
   },
-  "include": ["src", "tsdown.config.ts"]
+  "include": ["src", "tsdown.config.ts"],
+  "exclude": ["src/**/*.browser.test.ts"]
 }

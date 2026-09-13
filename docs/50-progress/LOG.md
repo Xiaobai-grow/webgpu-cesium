@@ -2,6 +2,31 @@
 
 按日期倒序。标签：`[对齐]` `[决策]` `[变更]` `[推翻]` `[完成]` `[阻塞]` `[风险]`。
 
+## 2026-09-13（M3 追加：mars3d 中国地形）
+
+- [完成] 探测 `http://data.mars3d.cn/terrain`：`layer.json` 为 quantized-mesh-1.0、EPSG:4326、TMS、`{z}/{x}/{y}.terrain`、`octvertexnormals`、maxzoom 15；名称「Mars3D中国地形12.5米」，attribution `http://mars3d.cn`。0–8 级 `available` 近似全球（含负 `startX`），9–15 级约 67°E–136°E、11°N–57°N（中国及周边）。
+- [完成] 抽样瓦片：北京城区 L9 高差约 9–30 m（近平地，201 B 网格）；延庆 L9 464–2058 m；四姑娘山 L9/L11 约 2.8–6.0 km；峨眉 L9 493–3064 m。大瓦片 `Content-Encoding: gzip`，`fetch` 自动解压后为合法 QM；`Content-Type: application/octet-stream`。
+- [完成] CORS：GET 响应带 `Access-Control-Allow-Origin: *`（layer.json 与 `.terrain`）。OPTIONS 预检返回 204 且无 ACAO；当前 `Accept` 属 CORS 安全列表，浏览器从 `http://localhost` 拉 HTTP 地形应无需预检。HTTPS 托管页面会因混合内容被拦。
+- [变更] `CesiumTerrainProvider`：`layer.json` 的 `attribution` 在未传入 `credit` 时写入 `provider.credit`。`Scene` 每帧把地形 credit 与影像 credit 一并挂到 CreditDisplay。
+- [变更] `hello-terrain` 支持 `?terrain=mars3d` 或 `?terrain=http(s)://...`；默认仍是圆锥山 / `?ion=`。列表新增「Terrain / 中国（mars3d）」。相机默认四姑娘山南侧（102.88°E, 30.85°N, 48 km，朝北俯视）；真实地形垂直夸张 3。
+- [决策] CI / e2e 不打 mars3d；单测只用 mock layer.json。不设 Vite 代理（本机 HTTP 示例站 CORS 已放行）。
+- [完成] 本机 Chrome 打开 `http://localhost:5173/#/examples/hello-terrain-china?terrain=mars3d`：WebGPU 可用，非黑屏，Credit「Mars3D 中国地形 12.5m · © OpenStreetMap contributors」。约 3 s 后 68 瓦片 / 106 请求，四姑娘山南侧可见横断山褶皱起伏（垂直夸张 3）。页面内 `fetch` layer.json 与 9/804/344.terrain（51 KB）成功，无 CORS 报错。部分 OSM 影像格缺失（黑块），与官方 OSM 使用策略有关，不挡地形。
+- [风险] 第三方 HTTP 服务稳定性与使用策略未评估；仅供本地测试。高 zoom 仅中国范围，境外会填洞 / 粗 LOD。HTTPS 托管会被混合内容拦住。
+
+## 2026-09-13（第六轮：M3）
+
+- [完成] M3 落地于分支 `feat/m3-terrain`（未合并 `main`）：高度图裙边 / 量化网格 / `sampleTerrain` / `CesiumTerrainProvider` / `CustomHeightmap` / `TerrainFillMesh` / `Globe.pick` / `getHeight` / 相机碰地 / Geographic↔Mercator 重投影 / `hello-terrain`。M2 已在此前合并 `main`（PR #3）。
+- [完成] 验证：`pnpm build` / `lint` / `typecheck` 通过；`pnpm test` 35 文件 198 用例（含 `core-browser` Worker 往返与 `scene-gpu` 高度图地球 `copyTextureToBuffer` 非全黑）。本机有 WebGPU。示例站 hello-terrain 可见带高度的地球。
+- [决策] 顶点仍为 NONE 量化 5-float（position + uv），不为法线改 stride；`encodedNormals` / `waterMask` 留 CPU。地形光照升级仍属 M4。
+- [决策] `Ion.defaultAccessToken` 为空，不内置 Cesium 评估 token；演示默认 `CustomHeightmapTerrainProvider` 高斯丘，`?ion=` 可选世界地形。
+- [决策] 量化网格上采样输出 17×17 `HeightmapTerrainData`，不再回编码 QM。`TerrainPicker` 不做增量 BVH。`ApproximateTerrainHeights` 不捆绑完整 JSON。
+- [决策] ArcGIS LERC 不移植解码器（请求几何抛错）。`Cesium3DTilesTerrainProvider` 为可选，本轮不做。WMS/WMTS/Bing/Ion 影像 Provider 超出里程碑正文，只接线重投影。
+- [变更] `upsampleQuantizedTerrainMesh`、`TerrainFillMesh`（常数高填洞）、`sampleTerrain` 失败高度用 NaN（`Cartographic.height` 不能 `undefined`）。
+- [变更] Worker 默认关闭；`setTerrainTaskProcessors` 注入后 `createMesh` 走 TaskProcessor。Worker 入口在 `core/src/workers/`（文档曾写 `scene/workers`）。
+- [变更] 方案不兼容时不再跳过影像：`reproject.wgsl` compute，失败回退 CPU。hello-globe 仍用 WebMercator 对齐 OSM；hello-terrain 用 Geographic + OSM 走重投影。
+- [变更] ESLint `globalIgnores` 增加 `packages/core/src/**/*.browser.test.ts`（core tsconfig 无 DOM，projectService 收不到该文件）。
+- [风险] ion 世界地形山区截图未在无 token 环境闭环。官方 OSM 仍有使用策略，e2e 继续 `?imagery=grid`。GPU `rgba8unorm` storage 可能不可用，依赖 CPU 回退。贴地 `depthBias` 未标定。
+
 ## 2026-09-13（第五轮：M2）
 
 - [完成] M2 2.1–2.13 落地于分支 `feat/m2-first-globe`（未合并 `main`）：`Scene` / `Camera`（Reverse-Z + RTE）/ 四叉树 / 零高度椭球 / OSM 影像 / Credit / `CesiumViewer` / `hello-globe`。本机 Chrome 打开示例站可见带 OSM 纹理的地球（非洲 / 欧洲轮廓清晰），Credit「© OpenStreetMap contributors」，CPU ≈ 1 ms。

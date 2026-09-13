@@ -1,7 +1,7 @@
 /**
  * 单块地表：地形网格 + 影像引用 + GPU buffer。
  */
-import type { TerrainMesh } from "@webgpu-cesium/core"
+import type { TerrainData, TerrainMesh } from "@webgpu-cesium/core"
 import type { QuadtreeTileData } from "../quadtree/QuadtreeTile"
 import type { TileImagery } from "../imagery/TileImagery"
 import { TerrainState, type TerrainStateValue } from "./TerrainState"
@@ -17,8 +17,11 @@ export class GlobeSurfaceTile implements QuadtreeTileData {
   tileUniformBuffer: GPUBuffer | undefined
   tileBindGroup: GPUBindGroup | undefined
   tileImagery: TileImagery[] = []
+  terrainData: TerrainData | undefined
+  waterMask: Uint8Array | undefined
   renderable = false
   indexCount = 0
+  indexFormat: GPUIndexFormat = "uint16"
 
   /**
    * 释放 GPU 与影像引用。
@@ -36,7 +39,11 @@ export class GlobeSurfaceTile implements QuadtreeTileData {
     }
     this.tileImagery.length = 0
     this.mesh = undefined
+    this.terrainData = undefined
+    this.waterMask = undefined
     this.renderable = false
     this.terrainState = TerrainState.UNLOADED
+    this.indexCount = 0
+    this.indexFormat = "uint16"
   }
 }

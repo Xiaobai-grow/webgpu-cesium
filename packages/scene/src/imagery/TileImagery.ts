@@ -6,6 +6,7 @@
  * Licensed under the Apache License, Version 2.0
  */
 
+import type { Rectangle } from "@webgpu-cesium/core"
 import type { Imagery } from "./Imagery"
 
 /**
@@ -15,6 +16,11 @@ export class TileImagery {
   readyImagery: Imagery | undefined
   loadingImagery: Imagery | undefined
   textureCoordinateRectangle: { west: number; south: number; east: number; north: number }
+  needsReproject = false
+  destRectangle: Rectangle | undefined
+  sourceRectangle: Rectangle | undefined
+  reprojectSources: Imagery[] = []
+  reprojectPending = false
 
   /**
    * @param imagery 加载中的影像

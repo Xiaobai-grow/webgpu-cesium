@@ -77,6 +77,7 @@ export default defineConfig([
     "**/playwright-report/",
     "**/.husky/",
     "**/*.snap",
+    "packages/core/src/**/*.browser.test.ts",
   ]),
 
   // 基础 JS 规则

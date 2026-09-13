@@ -8,7 +8,9 @@ Copyright 2011-2026 CesiumJS Contributors, licensed under the Apache License, Ve
 Files ported from CesiumJS retain their original copyright and license headers.
 
 The geographic, mathematical, temporal, terrain / imagery and 3D Tiles data-layer modules of
-this project are ported from CesiumJS (packages/engine/Source). The rendering engine, WGSL
+this project are ported from CesiumJS (packages/engine/Source), including M3 terrain modules
+such as CesiumTerrainProvider, QuantizedMeshTerrainData, HeightmapTerrainData, TileAvailability,
+sampleTerrain, IonResource, and CustomHeightmapTerrainProvider. The rendering engine, WGSL
 shaders and scene layer are original work written for WebGPU.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file

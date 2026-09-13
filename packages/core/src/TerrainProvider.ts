@@ -13,6 +13,7 @@ import type { Ellipsoid } from "./Ellipsoid"
 import type { Event } from "./Event"
 import type { Request } from "./Request"
 import type { TerrainData } from "./TerrainData"
+import type { TileAvailability } from "./TileAvailability"
 import type { TileProviderError } from "./TileProviderError"
 import type { TilingScheme } from "./TilingScheme"
 
@@ -28,7 +29,7 @@ export abstract class TerrainProvider {
   abstract readonly tilingScheme: TilingScheme
   abstract readonly hasWaterMask: boolean
   abstract readonly hasVertexNormals: boolean
-  abstract readonly availability: undefined
+  abstract readonly availability: TileAvailability | undefined
 
   /**
    * 由高度图估计 0 级几何误差。
@@ -86,5 +87,5 @@ export abstract class TerrainProvider {
    * @param y 行
    * @param level LOD
    */
-  abstract loadTileDataAvailability(x: number, y: number, level: number): undefined
+  abstract loadTileDataAvailability(x: number, y: number, level: number): Promise<void> | undefined
 }

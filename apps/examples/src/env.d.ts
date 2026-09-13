@@ -2,6 +2,7 @@
 
 interface Window {
   helloGlobeSetView?: (name: string) => void
+  helloTerrainSetView?: (name: string) => void
 }
 
 declare module "*.vue" {

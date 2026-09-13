@@ -160,6 +160,10 @@ export class Scene {
     this.frameState.statistics.renderItemCount = items.length
     this.frameState.statistics.pipelineCount = this.device.pipelines.size
 
+    const terrainCredit = this.globe.terrainProvider.credit
+    if (terrainCredit) {
+      this.creditDisplay.addCredit(terrainCredit)
+    }
     for (const layer of this.globe.imageryLayers) {
       const credit = layer.imageryProvider.credit
       if (credit) {

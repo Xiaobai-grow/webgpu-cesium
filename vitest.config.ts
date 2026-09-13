@@ -54,6 +54,7 @@ export default defineConfig({
           name: "core",
           environment: "node",
           include: ["packages/core/src/**/*.test.ts"],
+          exclude: ["packages/core/src/**/*.browser.test.ts"],
         },
       },
       {
@@ -71,6 +72,19 @@ export default defineConfig({
           environment: "node",
           include: ["packages/scene/src/**/*.test.ts"],
           exclude: ["packages/scene/src/**/*.render.test.ts"],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "core-browser",
+          include: ["packages/core/src/**/*.browser.test.ts"],
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: browserProvider,
+            instances: [{ browser: "chromium" }],
+          },
         },
       },
       {

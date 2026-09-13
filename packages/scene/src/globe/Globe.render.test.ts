@@ -3,8 +3,11 @@
  */
 import {
   Cartesian3,
+  Cartographic,
   CesiumMath,
+  CustomHeightmapTerrainProvider,
   EllipsoidTerrainProvider,
+  GeographicTilingScheme,
   WebMercatorTilingScheme,
 } from "@webgpu-cesium/core"
 import { hasNonBlackPixels } from "@webgpu-cesium/renderer"
@@ -67,6 +70,62 @@ describe.skipIf(!hasWebGpu)("Globe 渲染回读", () => {
       `tilesRendered=${String(tilesRendered)} maxChannel=${String(maxChannel)}`,
     ).toBeGreaterThan(0)
     expect(hasNonBlackPixels(pixels, 40), `maxChannel=${String(maxChannel)}`).toBe(true)
+    scene.destroy()
+    canvas.remove()
+  })
+
+  it("自定义高度图 Geographic 地球 copyTextureToBuffer 非全黑", async () => {
+    device = await GpuDevice.create({ label: "globe-terrain-render-test" })
+    const canvas = document.createElement("canvas")
+    canvas.width = 256
+    canvas.height = 256
+    canvas.style.width = "256px"
+    canvas.style.height = "256px"
+    document.body.appendChild(canvas)
+
+    const tilingScheme = new GeographicTilingScheme()
+    const peak = Cartographic.fromDegrees(0, 0)
+    const globe = new Globe({
+      terrainProvider: new CustomHeightmapTerrainProvider({
+        width: 17,
+        height: 17,
+        tilingScheme,
+        callback(x, y, level) {
+          const rectangle = tilingScheme.tileXYToRectangle(x, y, level)
+          const buffer = new Float32Array(17 * 17)
+          for (let row = 0; row < 17; row++) {
+            const lat = CesiumMath.lerp(rectangle.north, rectangle.south, row / 16)
+            for (let col = 0; col < 17; col++) {
+              const lon = CesiumMath.lerp(rectangle.west, rectangle.east, col / 16)
+              const dlon = lon - peak.longitude
+              const dlat = lat - peak.latitude
+              buffer[row * 17 + col] = 5000 * Math.exp(-(dlon * dlon + dlat * dlat) / 0.04)
+            }
+          }
+          return buffer
+        },
+      }),
+    })
+    globe.imageryLayers.addImageryProvider(new GridImageryProvider({ tilingScheme }))
+    const scene = new Scene({ canvas, device, globe })
+    scene.camera.setView({
+      destination: Cartesian3.fromDegrees(0, 0, 2.0e7),
+      orientation: { heading: 0, pitch: -CesiumMath.PI_OVER_TWO, roll: 0 },
+    })
+
+    let pixels: Uint8Array<ArrayBufferLike> = new Uint8Array()
+    let tilesRendered = 0
+    for (let i = 0; i < 45; i++) {
+      scene.render()
+      tilesRendered = scene.frameState.statistics.tilesRendered
+      pixels = await scene.readColorBuffer()
+      if (tilesRendered > 0 && hasNonBlackPixels(pixels, 40)) {
+        break
+      }
+      await new Promise((resolve) => setTimeout(resolve, 16))
+    }
+    expect(tilesRendered).toBeGreaterThan(0)
+    expect(hasNonBlackPixels(pixels, 40)).toBe(true)
     scene.destroy()
     canvas.remove()
   })

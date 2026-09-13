@@ -181,10 +181,69 @@ export {
 } from "./EllipsoidTerrainProvider"
 export {
   createVerticesFromHeightmap,
+  deserializeTerrainMesh,
   serializeTerrainMesh,
   type CreateVerticesFromHeightmapInput,
   type CreateVerticesFromHeightmapOutput,
 } from "./createVerticesFromHeightmap"
+export { getJsonFromTypedArray } from "./getJsonFromTypedArray"
+export { VerticalExaggeration } from "./VerticalExaggeration"
+export { TileAvailability } from "./TileAvailability"
+export {
+  ApproximateTerrainHeights,
+  type ApproximateTerrainHeightTable,
+} from "./ApproximateTerrainHeights"
+export {
+  DEFAULT_HEIGHTMAP_STRUCTURE,
+  interpolateHeightmapSample,
+  resolveHeightmapStructure,
+  type HeightmapStructure,
+} from "./heightmapStructure"
+export {
+  QuantizedMeshExtensionIds,
+  parseQuantizedMesh,
+  encodeQuantizedMesh,
+  type QuantizedMeshParseResult,
+  type EncodeQuantizedMeshInput,
+} from "./quantizedMesh"
+export {
+  QuantizedMeshTerrainData,
+  type QuantizedMeshTerrainDataOptions,
+} from "./QuantizedMeshTerrainData"
+export {
+  createVerticesFromQuantizedTerrainMesh,
+  type CreateVerticesFromQuantizedTerrainMeshInput,
+} from "./createVerticesFromQuantizedTerrainMesh"
+export { upsampleQuantizedTerrainMesh } from "./upsampleQuantizedTerrainMesh"
+export { sampleTerrain } from "./sampleTerrain"
+export { sampleTerrainMostDetailed } from "./sampleTerrainMostDetailed"
+export { TerrainPicker } from "./TerrainPicker"
+export {
+  CustomHeightmapTerrainProvider,
+  type CustomHeightmapGeometryCallback,
+  type CustomHeightmapTerrainProviderOptions,
+} from "./CustomHeightmapTerrainProvider"
+export { Ion } from "./Ion"
+export {
+  IonResource,
+  type IonAssetEndpoint,
+  type IonResourceFromAssetIdOptions,
+} from "./IonResource"
+export { CesiumTerrainProvider, type CesiumTerrainProviderOptions } from "./CesiumTerrainProvider"
+export { createWorldTerrainAsync, CESIUM_WORLD_TERRAIN_ASSET_ID } from "./createWorldTerrainAsync"
+export {
+  createWorldBathymetryAsync,
+  CESIUM_WORLD_BATHYMETRY_ASSET_ID,
+} from "./createWorldBathymetryAsync"
+export {
+  ArcGISTiledElevationTerrainProvider,
+  type ArcGISTiledElevationTerrainProviderOptions,
+} from "./ArcGISTiledElevationTerrainProvider"
+export {
+  setTerrainTaskProcessors,
+  getHeightmapTaskProcessor,
+  getQuantizedMeshTaskProcessor,
+} from "./terrainTaskProcessors"
 
 export { Heap } from "./Heap"
 export { Queue } from "./Queue"
