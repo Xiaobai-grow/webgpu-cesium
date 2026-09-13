@@ -70,6 +70,23 @@ export class ImageryLayer {
   }
 
   /**
+   * 重投影目标占位（与 1:1 缓存隔离）。
+   *
+   * @param x 地形列
+   * @param y 地形行
+   * @param level 地形 LOD
+   */
+  getReprojectImagery(x: number, y: number, level: number): Imagery {
+    const key = `rp:${ImageryLayer.getKey(x, y, level)}`
+    let imagery = this._imageryCache.get(key)
+    if (!imagery) {
+      imagery = new Imagery(this, x, y, level)
+      this._imageryCache.set(key, imagery)
+    }
+    return imagery
+  }
+
+  /**
    * 为地形瓦片创建 TileImagery（同方案 1:1 映射）。
    *
    * @param x 地形列

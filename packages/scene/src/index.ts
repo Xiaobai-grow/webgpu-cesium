@@ -15,13 +15,15 @@ export { FrameState, type FrameStatePasses, type FrameStateStatistics } from "./
 export { PerformanceDisplay, type PerformanceSnapshot } from "./PerformanceDisplay"
 export { Scene, type SceneOptions } from "./Scene"
 export { SceneTransforms, getPickRay } from "./SceneTransforms"
-export { ScreenSpaceCameraController } from "./ScreenSpaceCameraController"
+export { ScreenSpaceCameraController, clampCameraToTerrain } from "./ScreenSpaceCameraController"
 export { TweenCollection, type TweenOptions } from "./TweenCollection"
 
 export { Globe, type GlobeOptions } from "./globe/Globe"
 export { GlobeSurfaceTile } from "./globe/GlobeSurfaceTile"
 export { GlobeSurfaceTileProvider, tilingSchemesCompatible } from "./globe/GlobeSurfaceTileProvider"
+export { getHeightFromTiles, pickFromTiles, findFinestTerrainTile } from "./globe/globeHeight"
 export { ImageryAtlas } from "./globe/ImageryAtlas"
+export { TerrainFillMesh } from "./globe/TerrainFillMesh"
 export { TerrainState, type TerrainStateValue } from "./globe/TerrainState"
 
 export { QuadtreeOccluders } from "./quadtree/QuadtreeOccluders"
@@ -36,6 +38,12 @@ export { TileBoundingRegion } from "./quadtree/TileBoundingRegion"
 export { TileReplacementQueue } from "./quadtree/TileReplacementQueue"
 export { TileSelectionResult, type TileSelectionResultValue } from "./quadtree/TileSelectionResult"
 
+export { coveringTiles } from "./imagery/coveringTiles"
+export {
+  geographicToMercatorV,
+  reprojectImageCpu,
+  reprojectSourceUv,
+} from "./imagery/ImageryReprojector"
 export { GridImageryProvider, type GridImageryProviderOptions } from "./imagery/GridImageryProvider"
 export { Imagery } from "./imagery/Imagery"
 export { ImageryLayer, type ImageryLayerOptions } from "./imagery/ImageryLayer"

@@ -5,18 +5,48 @@
  * Copyright 2011-2026 Cesium JS Contributors
  * Licensed under the Apache License, Version 2.0
  *
- * 3D 旋转 / 缩放 / 倾斜。无 2D。地形碰撞仅留 minimumZoomDistance。
+ * 3D 旋转 / 缩放 / 倾斜。无 2D。可选相机碰地。
  */
 import {
   Cartesian2,
   Cartesian3,
+  type Cartographic,
   CesiumMath,
   defined,
+  type Ellipsoid,
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
 } from "@webgpu-cesium/core"
 import type { Camera } from "./Camera"
 import type { Scene } from "./Scene"
+
+/**
+ * 把相机抬到地形 + 最小距离之上。
+ *
+ * @param camera 相机
+ * @param getHeight 地形高
+ * @param minimumDistance 离地最小距离
+ * @param ellipsoid 椭球
+ */
+export function clampCameraToTerrain(
+  camera: Camera,
+  getHeight: (cartographic: Cartographic) => number | undefined,
+  minimumDistance: number,
+  ellipsoid: Ellipsoid,
+): boolean {
+  const carto = camera.positionCartographic
+  const terrainHeight = getHeight(carto)
+  if (terrainHeight === undefined) {
+    return false
+  }
+  const minHeight = terrainHeight + minimumDistance
+  if (carto.height >= minHeight) {
+    return false
+  }
+  Cartesian3.fromRadians(carto.longitude, carto.latitude, minHeight, ellipsoid, camera.position)
+  camera.updateMembers()
+  return true
+}
 
 const scratchStart = new Cartesian2()
 const scratchEnd = new Cartesian2()
@@ -31,6 +61,7 @@ export class ScreenSpaceCameraController {
   enableZoom = true
   enableTilt = true
   enableLook = true
+  enableCollisionDetection = true
   inertiaSpin = 0.9
   inertiaZoom = 0.8
   minimumZoomDistance = 1.0
@@ -154,6 +185,14 @@ export class ScreenSpaceCameraController {
     if (this._zoomInertia !== 0 && Math.abs(this._zoomInertia) > 0.0001) {
       this.zoom(camera, this._zoomInertia * this.inertiaZoom)
       this._zoomInertia *= this.inertiaZoom
+    }
+    if (this.enableCollisionDetection) {
+      clampCameraToTerrain(
+        camera,
+        (cartographic) => this.scene.globe.getHeight(cartographic),
+        this.minimumZoomDistance,
+        camera.ellipsoid,
+      )
     }
   }
 
