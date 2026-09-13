@@ -8,21 +8,22 @@
  * TypeScript port for @webgpu-cesium/core
  */
 
+import type { JulianDate } from "./JulianDate"
+
 /**
  * 一次闰秒：TAI 领先 UTC 的累计秒数。
  * 对标 Cesium `Core/LeapSecond.js`。
- * `julianDate` 在 JulianDate 模块落地后收窄为该类（避免循环导入）。
  */
 export class LeapSecond {
-  julianDate: unknown
-  offset: number | undefined
+  julianDate: JulianDate
+  offset: number
 
   /**
    * @param date 闰秒时刻（JulianDate）
    * @param offset TAI-UTC 秒
    */
-  constructor(date?: unknown, offset?: number) {
-    this.julianDate = date
-    this.offset = offset
+  constructor(date?: JulianDate, offset?: number) {
+    this.julianDate = date!
+    this.offset = offset ?? 0
   }
 }
