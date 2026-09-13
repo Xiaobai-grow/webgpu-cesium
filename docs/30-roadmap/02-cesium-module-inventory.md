@@ -55,7 +55,7 @@
 | `Heap` `DoublyLinkedList` `Queue` `DoubleEndedPriorityQueue` `AssociativeArray` `ManagedArray` `binarySearch` `mergeSort` `arrayRemoveDuplicates` `subdivideArray` `addAllToArray` `Packable` `PackableForInterpolation` | 移植 | M1 | 未开始 | — |
 | `Resource` `Request` `RequestScheduler` `RequestState` `RequestType` `RequestErrorEvent` `DefaultProxy` `Proxy` `TrustedServers` `parseResponseHeaders` `objectToQuery` `queryToObject` `getAbsoluteUri` `getBaseUri` `getExtensionFromUri` `getFilenameFromUri` `isBlobUri` `isCrossOriginUrl` `isDataUri` `appendForwardSlash` `buildModuleUrl` `loadAndExecuteScript` | 移植 | M1 | 未开始 | `Resource.fetchImage` 改为返回 `ImageBitmap`；`loadAndExecuteScript`（JSONP）后置 |
 | `TaskProcessor` | 改写 | M1 | 未开始 | `new Worker(new URL())` 约定；保留 `scheduleTask` API |
-| `FeatureDetection` | 改写 | M0 | 未开始 | 只保留 `supportsWebGPU`、`supportsOffscreenCanvas`、`supportsImageBitmap` 等；删除 WebGL 探测 |
+| `FeatureDetection` | 改写 | M0 | 完成 | M0 落地为 `rhi/GpuDevice.probe()`（`navigator.gpu` / 适配器 / `adapter.info` / features / limits / 是否 compatibility）与 `rhi/features.ts` 可选 feature 白名单，不再有独立 `FeatureDetection` 类；`supportsOffscreenCanvas` / `supportsImageBitmap` 等 DOM 探测留 M1 `core` 按需补 |
 | `Credit` | 移植 | M2 | 未开始 | — |
 | `Ion` `IonResource` | 移植 | M3 | 未开始 | — |
 | `getImagePixels` `getImageFromTypedArray` `loadImageFromTypedArray` `resizeImageToNextPowerOfTwo` `writeTextToCanvas` `getStringFromTypedArray` `getJsonFromTypedArray` `getMagic` `isBitSet` `createGuid` | 移植 | M2 / M9 | 未开始 | `resizeImageToNextPowerOfTwo` 可能不再需要 |
@@ -209,16 +209,21 @@ fork 内 `ThreeGeospatial/*` 与 `Extension/Ocean/*` 的 GLSL（大气、云、�
 
 ## 新增模块（Cesium 没有）
 
-| 模块 | 包 | 里程碑 |
-| --- | --- | --- |
-| `GpuDevice` `PipelineCache` `BindGroupCache` `ReadbackQueue` `GpuTimer` | rhi | M0 |
-| WGSL 组合器与反射 | shaders | M0 |
-| `RenderGraph` `RenderItem` | renderer | M0 / M4 |
-| `Material` `Texture` 基类，`MeshBasicMaterial` `MeshStandardMaterial` `MeshPhysicalMaterial`，`MaterialOutput` 契约，`onBeforeCompose` 接口点 | renderer / shaders | M4 |
-| `LineBasicMaterial` `LineDashedMaterial` `PointsMaterial` `SpriteMaterial` `ShaderMaterial` `ShadowMaterial` `MeshNormalMaterial` `MeshDepthMaterial`，GIS 扩展材质，`VideoTexture` `CanvasTexture` `DataTexture` 系列 | renderer | M9 |
-| `FrameUniforms` 填充器、`EnvironmentState` | renderer / scene | M4 |
-| Hillaire 大气、`StarField`、月面渲染 | environment | M4 |
-| CSM、GTAO、TAA、Bloom、自动曝光、WBOIT | renderer | M6 |
-| `VolumetricClouds` `WeatherMapProvider` `WeatherSystem` `Ocean` | environment | M7 |
-| GPU-driven 剔除、Hi-Z、虚拟纹理、meshlet | renderer / tiles | M8 |
-| Vue 3 widgets、示例站、文档站 | widgets / apps | M9 / M10 |
+| 模块 | 包 | 里程碑 | 状态 |
+| --- | --- | --- | --- |
+| `GpuDevice` `PipelineCache` `BindGroupLayoutCache` `SamplerCache` `ShaderModuleCache` | rhi | M0 | 完成 |
+| `ReadbackQueue` `GpuTimer` | rhi | M4 | 未开始 |
+| WGSL 组合器（`#import` / `#if`、规范化、sourceMap、hash）与内置模块 `builtin/constants.wgsl` `builtin/frame.wgsl` | shaders | M0 | 完成 |
+| WGSL 反射（`wgsl_reflect`） | shaders | M2 | 未开始 |
+| `RenderGraph`（最小：`addPass` / 资源句柄 / 导入 canvas / 裁剪 / 拓扑排序）、`RenderItem` 类型 | renderer | M0 | 完成 |
+| `RenderGraph` 瞬态资源别名、多队列、性能统计 | renderer | M4 | 未开始 |
+| `FrameUniformsBuffer`（M0 只填 `time` / `deltaTime` / `frameNumber` / `viewport`，矩阵置单位） | renderer | M0 | 完成（占位） |
+| `Material` `Texture` 基类，`MeshBasicMaterial` `MeshStandardMaterial` `MeshPhysicalMaterial`，`MaterialOutput` 契约，`onBeforeCompose` 接口点 | renderer / shaders | M4 | 未开始 |
+| `LineBasicMaterial` `LineDashedMaterial` `PointsMaterial` `SpriteMaterial` `ShaderMaterial` `ShadowMaterial` `MeshNormalMaterial` `MeshDepthMaterial`，GIS 扩展材质，`VideoTexture` `CanvasTexture` `DataTexture` 系列 | renderer | M9 | 未开始 |
+| `FrameUniforms` 完整填充器（相机矩阵与高低位）、`EnvironmentState` | renderer / scene | M2 / M4 | 未开始 |
+| Hillaire 大气、`StarField`、月面渲染 | environment | M4 | 未开始 |
+| CSM、GTAO、TAA、Bloom、自动曝光、WBOIT | renderer | M6 | 未开始 |
+| `VolumetricClouds` `WeatherMapProvider` `WeatherSystem` `Ocean` | environment | M7 | 未开始 |
+| GPU-driven 剔除、Hi-Z、虚拟纹理、meshlet | renderer / tiles | M8 | 未开始 |
+| 示例站骨架（Vue 3 + Vue Router，`hello-triangle`） | apps/examples | M0 | 完成 |
+| Vue 3 widgets、示例站完整版（Monaco）、文档站 | widgets / apps | M9 / M10 | 未开始 |

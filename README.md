@@ -6,7 +6,23 @@
 
 ## 状态
 
-设计阶段。当前仓库只有设计文档，尚无工程代码。路线图见 [docs/30-roadmap/01-milestones.md](docs/30-roadmap/01-milestones.md)，进度见 [docs/50-progress/PROGRESS.md](docs/50-progress/PROGRESS.md)。
+M0 完成：pnpm monorepo 脚手架、`GpuDevice` 设备初始化、WGSL 组合器、最小 Render Graph，示例站可渲染旋转三角形。路线图见 [docs/30-roadmap/01-milestones.md](docs/30-roadmap/01-milestones.md)，进度见 [docs/50-progress/PROGRESS.md](docs/50-progress/PROGRESS.md)。
+
+## 开发
+
+需要 Node 22 LTS 与 pnpm 10（`corepack enable`）。
+
+```sh
+pnpm install          # 安装依赖（会构建 tools/wgsl-plugin 并安装 git hooks）
+pnpm dev              # 启动示例站 http://localhost:5173
+pnpm build            # 构建 tools + packages 到各自 dist/
+pnpm lint             # ESLint
+pnpm typecheck        # 各包 tsc / vue-tsc
+pnpm test             # Vitest：Node（core / shaders）+ 浏览器（rhi / renderer，需 Chromium + WebGPU）
+pnpm e2e              # Playwright 示例站截图基线
+```
+
+仓库布局与包职责见 [docs/10-architecture/02-packages.md](docs/10-architecture/02-packages.md)。
 
 ## 文档
 
