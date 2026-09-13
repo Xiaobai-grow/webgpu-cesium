@@ -1,0 +1,31 @@
+{
+  "name": "examples",
+  "version": "0.0.0",
+  "private": true,
+  "description": "示例站：Vite + Vue 3 + Vue Router，左侧示例列表、右侧 canvas（对标 Sandcastle）",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev": "vite --port 5173 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "e2e": "playwright test",
+    "e2e:update": "playwright test --update-snapshots"
+  },
+  "dependencies": {
+    "@webgpu-cesium/core": "workspace:*",
+    "@webgpu-cesium/renderer": "workspace:*",
+    "@webgpu-cesium/rhi": "workspace:*",
+    "@webgpu-cesium/shaders": "workspace:*",
+    "vue": "^3.5.42",
+    "vue-router": "^5.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@webgpu-cesium/wgsl-plugin": "workspace:*",
+    "less": "^4.9.1",
+    "vue-tsc": "^3.3.11"
+  }
+}
