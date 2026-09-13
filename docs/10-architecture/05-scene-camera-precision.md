@@ -80,6 +80,7 @@
 
 ## 待验证
 
+- [x] M1：PerspectiveFrustum Reverse-Z 投影矩阵数值（2026-09-13，`packages/core/src/bounds.test.ts`）：eye-space `z = -near` 映到 NDC z=1，`z = -far` 映到 0；`far = Infinity` 时远处趋近 0；`computeCullingVolume` 仍返回 6 平面。
 - [ ] M2：near 0.1 m / far 无穷远的 Reverse-Z 在 RTX / Apple M 系 / Intel 集显上的 z-fighting 表现（地形与贴地面）。
 - [ ] M2：相机相对模型矩阵每帧更新成千瓦片的 CPU 成本。
 - [ ] M3：贴地几何的 `depthBias` 参数标定。

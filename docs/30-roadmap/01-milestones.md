@@ -38,6 +38,7 @@ M3 与 M4 可并行；M5 依赖 M4 的 RenderItem / 材质接口稳定；M7 / M8
 
 ## M1 core 数学、地理、时间移植
 
+- **状态**：完成（2026-09-13，分支 `feat/m1-core-math`，未合并 `main`）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
 - **目标**：`@webgpu-cesium/core` 覆盖 Cesium `Core` 中的数学 / 地理 / 时间 / 请求 / 事件模块，测试从 Cesium Specs 移植。
 - **范围**：见 [02-cesium-module-inventory.md](02-cesium-module-inventory.md) 的「M1」列：`Math`、`Cartesian2/3/4`、`Cartographic`、`Matrix2/3/4`、`Quaternion`、`Ellipsoid`、`EllipsoidGeodesic`、`EllipsoidRhumbLine`、`EllipsoidTangentPlane`、`Rectangle`、`BoundingSphere`、`OrientedBoundingBox`、`AxisAlignedBoundingBox`、`BoundingRectangle`、`Plane`、`Ray`、`IntersectionTests`、`Intersections2D`、`CullingVolume`、`PerspectiveFrustum` / `OrthographicFrustum` 系列（改 0..1 深度 + Reverse-Z）、`Transforms`、`HeadingPitchRoll`、`HeadingPitchRange`、`EncodedCartesian3`、`GeographicProjection`、`WebMercatorProjection`、`GeographicTilingScheme`、`WebMercatorTilingScheme`、`JulianDate`、`GregorianDate`、`LeapSecond`、`TimeInterval(Collection)`、`TimeStandard`、`TimeConstants`、`Iso8601`、`Clock`、`ClockRange`、`ClockStep`、`Simon1994PlanetaryPositions`、`Iau2006XysData`、`EarthOrientationParameters`、`Event`、`EventHelper`、`defined`、`Check`、`DeveloperError`、`RuntimeError`、`destroyObject`、`Resource`、`Request`、`RequestScheduler`、`RequestType`、`TaskProcessor`、`Credit`、`Color`、`Occluder`、`EllipsoidalOccluder`、`AttributeCompression`、`ComponentDatatype`、`IndexDatatype`、`PrimitiveType`、`Heap`、`DoublyLinkedList`、`Queue`、`AssociativeArray`、`ManagedArray`、`binarySearch`、`mergeSort`。
 - **不做**：几何生成（`*Geometry`，M9）、Provider（M2 / M3）。

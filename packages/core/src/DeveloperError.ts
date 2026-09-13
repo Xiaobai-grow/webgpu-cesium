@@ -1,18 +1,39 @@
 /**
- * 开发期错误：调用方违反了 API 契约（参数缺失、越界、状态不合法）。
- * 生产构建中相关校验（`Check`）会被剥离，因此该错误只应在开发期出现。
+ * @license
+ * Portions of this file are derived from CesiumJS
+ * https://github.com/CesiumGS/cesium
+ * Copyright 2011-2026 Cesium JS Contributors
+ * Licensed under the Apache License, Version 2.0
  *
- * TODO(M1): 用 Cesium `Core/DeveloperError.js` 的移植版替换，并补充 `Check`。
+ * TypeScript port for @webgpu-cesium/core
+ */
+
+import { defined } from "./defined"
+
+/**
+ * 开发期错误：调用方违反了 API 契约（参数缺失、越界、状态不合法）。
+ * 对标 Cesium `Core/DeveloperError.js`。
  */
 export class DeveloperError extends Error {
   override readonly name: string = "DeveloperError"
 
-  constructor(message: string, options?: ErrorOptions) {
-    super(message, options)
+  /**
+   * @param message 错误说明；Cesium 允许省略
+   */
+  constructor(message?: string) {
+    super(message)
     Object.setPrototypeOf(this, new.target.prototype)
   }
 
-  /** 供 Cesium 移植代码使用的静态断言辅助（占位） */
+  override toString(): string {
+    let str = `${this.name}: ${this.message}`
+    if (defined(this.stack)) {
+      str += `\n${this.stack}`
+    }
+    return str
+  }
+
+  /** 接口占位函数被直接调用时抛出 */
   static throwInstantiationError(): never {
     throw new DeveloperError(
       "This function defines an interface and should not be called directly.",

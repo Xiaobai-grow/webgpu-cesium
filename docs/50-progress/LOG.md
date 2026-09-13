@@ -2,6 +2,19 @@
 
 按日期倒序。标签：`[对齐]` `[决策]` `[变更]` `[推翻]` `[完成]` `[阻塞]` `[风险]`。
 
+## 2026-09-13（第四轮：M1）
+
+- [完成] M1 1.1–1.15 落地于分支 `feat/m1-core-math`（未合并 `main`）：`tools/port-cesium`；`@webgpu-cesium/core` 数学 / 地理 / 包围体 / Reverse-Z 视锥 / Transforms / 瓦片方案 / 时间 / 历表 / Resource / TaskProcessor / 输入与数据结构。公开 API 保留 Cesium 原名（ADR-0004）。
+- [完成] 本机验证：`pnpm build` / `pnpm lint` / `pnpm typecheck` 通过；`pnpm test:node` 23 文件 122 用例；`pnpm test` 27 文件 146 用例（含 M0 rhi/renderer 浏览器项目）。`core` gzip 约 130 KB（小于 150 KB）。
+- [决策] `core` tsconfig 无 DOM：`fetch` / `URL` / `Worker` / `console` 用自建类型或注入；`Resource.fetchImpl`、`TaskProcessor` Worker 工厂、`ScreenSpaceEventHandler` EventTarget 可注入。
+- [决策] URI 不用 urijs，用 `globalThis.URL`；`buildModuleUrl` 用 `setBaseUrl` 或 `CESIUM_BASE_URL`，不用 document / AMD。
+- [决策] 视锥改 0..1 深度 + Reverse-Z（near→1，far→0）；`computeCullingVolume` 保持 Cesium。
+- [决策] `FeatureDetection`：core 只留 endian / typed array / BigInt / WASM / Worker；WebGPU 仍在 `GpuDevice.probe()`。
+- [变更] `Check.typeOf.*` 不能当 TS assertion function（TS2775）。`RuntimeError` 保留 `ErrorOptions`，`name` 为 `string`，兼容 rhi/renderer。
+- [变更] `Iau2006XysData` 无 JSON 时 `computeXysRadians` 返回 `undefined`；EOP 无数据返回全 0。`DoubleEndedPriorityQueue` 用有序数组实现，API 对齐。多项式 / Simon1994 / IntersectionTests 顶部 `@ts-nocheck`。
+- [变更] Matrix2/3/4 增加 `toFloat32Array`。`Iau2000Orientation.ComputeMoon` 保留 Cesium 原名。`loadAndExecuteScript`、`Credit`、`Packable*`、`createColorRamp`、`DistanceDisplayCondition` 未移植。
+- [风险] 未整本搬运 Cesium Specs，覆盖为代表性单测。TaskProcessor / 输入无浏览器测试。ICRF 无本地 XYS 数据。
+
 ## 2026-09-13（第三轮：M0）
 
 - [完成] M0 0.1–0.11 全部落地于分支 `feat/m0-scaffold`（未合并 `main`）：pnpm monorepo（`packages/{core,rhi,shaders,renderer,scene,widgets,webgpu-cesium}`、`apps/examples`、`tools/wgsl-plugin`）、工具链（TypeScript 6 strict、tsdown、Vite 8、Vitest 5 Node + 浏览器、Playwright、ESLint 10 flat + typescript-eslint、Prettier、Husky + lint-staged、Changesets、Apache-2.0 `LICENSE` / `NOTICE`、GitHub Actions）、`.wgsl` 导入插件、WGSL 组合器最小子集、`GpuDevice` + 四个缓存、最小 Render Graph + `RenderItem` + `FrameUniformsBuffer`、Vue 3 示例站与 `hello-triangle`、Playwright 截图基线。锁定版本见 [20-tech-stack/01](../20-tech-stack/01-tech-selection.md)「锁定版本」。

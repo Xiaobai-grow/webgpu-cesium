@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-**M0 完成（分支 `feat/m0-scaffold`，待合并 `main`）。** 仓库已是 pnpm monorepo：7 个包 + `apps/examples` + `tools/wgsl-plugin`，示例站 `hello-triangle` 在 Chrome 中渲染随时间旋转的彩色三角形；Node / 浏览器测试与 Playwright 截图基线在本机（Windows，有 GPU）全绿。
+**M1 完成（分支 `feat/m1-core-math`，未合并 `main`）。** `@webgpu-cesium/core` 已覆盖清单 1.1–1.15 的数学 / 地理 / 椭球 / 包围体 / Reverse-Z 视锥 / 变换 / 瓦片方案 / 时间 / 历表 / 请求 / Worker / 输入模块；公开 API 保留 Cesium 原名。M0 仍在 `main`（PR #1 已合并）。
 
 ## 里程碑状态
 
@@ -12,8 +12,8 @@
 | --- | --- | --- | --- | --- |
 | 设计文档（本目录） | 完成 | 2026-09-13 | 2026-09-13 | 全部文档初版 + 材质系统设计（ADR-0010） |
 | Git 仓库初始化与推送 | 完成 | 2026-09-13 | 2026-09-13 | `origin/main` |
-| M0 脚手架 + 设备 + 三角形 | 完成 | 2026-09-13 | 2026-09-13 | 分支 `feat/m0-scaffold`；CI 首次运行待 push 后确认 |
-| M1 core 移植 | 未开始 | — | — | 可与 M2 并行 |
+| M0 脚手架 + 设备 + 三角形 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #1） |
+| M1 core 移植 | 完成 | 2026-09-13 | 2026-09-13 | 分支 `feat/m1-core-math`；未开 PR |
 | M2 球出现 | 未开始 | — | — | 见 [30-roadmap/03](../30-roadmap/03-first-globe-checklist.md) |
 | M3 地形 | 未开始 | — | — | — |
 | M4 Render Graph / 光照 / 大气 | 未开始 | — | — | — |
@@ -40,6 +40,26 @@
 | 0.10 | Hello Triangle 示例 | 完成 | Playwright 基线 `apps/examples/e2e/__screenshots__/…/hello-triangle-win32.png`（冻结 `time = 1s`） | 只有 win32 基线，Linux CI 首次运行需生成 `-linux.png` |
 | 0.11 | Husky + lint-staged + CI | 完成（CI 待首跑） | 本地 pre-commit 生效；`.github/workflows/ci.yml` 已写（lint / typecheck / Node 测试 / build 必过，浏览器测试 SwiftShader `continue-on-error`） | GitHub Actions 尚未跑过 |
 
+## M1 清单（[30-roadmap/03](../30-roadmap/03-first-globe-checklist.md) 1.1–1.15）
+
+| # | 任务 | 状态 | 已验证 | 未验证 / 备注 |
+| --- | --- | --- | --- | --- |
+| 1.1 | 移植脚本 | 完成 | `tools/port-cesium` `--list` / `--todo` / `--emit` | 机械草稿不能直接过 tsc，需手修 |
+| 1.2 | 基础工具 | 完成 | Event / CesiumMath / Check 等 Node 单测 | `Check.typeOf` 不能当 assertion function（TS2775） |
+| 1.3 | 向量与矩阵 | 完成 | `Cartesian3` / `Cartographic` 代表单测 | 未整本搬运 Cesium Specs |
+| 1.4 | 椭球与投影 | 完成 | Ellipsoid / Geodesic / Rhumb / TangentPlane / Rectangle / 投影单测 | — |
+| 1.5 | 包围体与相交 | 完成 | BoundingSphere / Ray / IntersectionTests 代表单测 | OBB / Occluder 无独立 Spec |
+| 1.6 | 视锥 Reverse-Z | 完成 | `bounds.test.ts`：near→NDC 1、far→0；无限远；6 平面裁剪体 | 真机 z-fighting 留 M2 |
+| 1.7 | 变换 | 完成 | Transforms ENU、EncodedCartesian3 | ICRF 无 XYS/EOP 数据时返回 `undefined` |
+| 1.8 | 瓦片方案 | 完成 | Geographic / WebMercator TilingScheme 单测 | — |
+| 1.9 | 时间 | 完成 | JulianDate / Clock / TimeInterval 单测 | — |
+| 1.10 | 天体历表 | 部分 | 模块已导出；无数据时 EOP 全 0、XYS `undefined` | 未提交 XYS JSON；无独立历表单测 |
+| 1.11 | 网络与调度 | 完成 | Resource / URI 单测；可注入 `fetch` | 不用 urijs / XHR / JSONP |
+| 1.12 | Worker 调度 | 部分 | `TaskProcessor` + 可注入 factory；`createTaskProcessorWorker` | 无浏览器 typed array 往返测试 |
+| 1.13 | 数据结构 | 完成 | `mergeSort` 单测；Heap / Queue / 链表等已移植 | `Packable*` 未移植 |
+| 1.14 | 编码与类型 | 完成 | Color / srgbToLinear 单测；`ComponentDatatype` → `GPUVertexFormat` 名 | `createColorRamp` / `DistanceDisplayCondition` 留 M9 |
+| 1.15 | 输入 | 部分 | `ScreenSpaceEventHandler` 可注入 EventTarget | 无合成事件浏览器测试 |
+
 ## 进行中
 
 无。
@@ -50,18 +70,24 @@
 
 ## 下一步
 
-1. 用户审阅并合并 `feat/m0-scaffold` → `main`，观察 CI 首次运行（Linux SwiftShader 浏览器测试是否能拿到适配器）。
-2. M1：`tools/port-cesium` 移植脚本 → 1.2 基础工具（替换 `core` 中 M0 的 `RuntimeError` / `DeveloperError` / `defined` / `Event` 占位实现）→ 1.3–1.8 数学 / 椭球 / 包围体 / 视锥 / 变换 / 瓦片方案。
-3. M2 前：引入 `wgsl_reflect`，把 `FrameUniformsBuffer` 的手写偏移表改为反射生成并用单测锁定（2.3）。
+1. 审阅 `feat/m1-core-math`，**不要合并 main**，按需开 PR。
+2. M2：`Scene` / `Camera`（Reverse-Z + 相机相对）/ 四叉树 / 零高度地形 / OSM 影像。
+3. M2 前建议：补 TaskProcessor 浏览器往返、XYS 本地数据、`EasingFunction`。
 
 ## 待验证项汇总（跨文档）
 
 M0（已关闭，结论见各文档「待验证」节）：
 
 - [x] 最小 Render Graph 的 CPU 开销与代码量（[01](../10-architecture/01-overview.md)）
-- [x] tsdown 多包 + `.wgsl` 打包（[02](../10-architecture/02-packages.md)）；Worker 打包顺延 M1
+- [x] tsdown 多包 + `.wgsl` 打包（[02](../10-architecture/02-packages.md)）
 - [x] `PipelineCache` 键哈希成本（[03](../10-architecture/03-rhi-and-render-graph.md)）；几百个 RenderItem 排序提交顺延 M2
 - [x] 自研组合器覆盖三角形与清屏（[04](../10-architecture/04-shader-system.md)）；`wgsl_reflect` 顺延 M2
+
+M1（已关闭）：
+
+- [x] `core` 在 Vitest Node 零 DOM 跑通代表单测（[02](../10-architecture/02-packages.md)）
+- [x] Reverse-Z 投影矩阵 near→1 / far→0（[05](../10-architecture/05-scene-camera-precision.md) 数值部分）
+- [ ] Worker `new URL()` 浏览器打包与 typed array 往返（顺延 M2 地形 Worker）
 
 M2：
 

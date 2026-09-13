@@ -1,7 +1,7 @@
 {
   "name": "@webgpu-cesium/core",
   "version": "0.0.0",
-  "description": "数学、地理、时间、请求与调度、Worker 任务、错误类型（M0 仅含最小工具集）",
+  "description": "数学、地理、时间、请求与调度、Worker 任务、错误类型",
   "type": "module",
   "license": "Apache-2.0",
   "sideEffects": false,
@@ -18,6 +18,6 @@
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --project core"
+    "test": "vitest run --project core --config ../../vitest.config.ts"
   }
 }

@@ -10,7 +10,7 @@
 - **后置**：不在 M0–M10 承诺范围，按需。
 - **新增**：Cesium 没有的模块。
 
-状态取值：`未开始` / `进行中` / `完成` / `已弃用`。当前全部为「未开始」，实现时逐行更新。
+状态取值：`未开始` / `进行中` / `完成` / `已弃用`。M1 行已按 2026-09-13 `feat/m1-core-math` 更新。
 
 ## Core
 
@@ -18,48 +18,48 @@
 
 | 模块 | 处理 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- | --- | --- |
-| `Math` | 移植 | M1 | 未开始 | 导出名 `CesiumMath` |
-| `Cartesian2` `Cartesian3` `Cartesian4` `Cartographic` `Spherical` | 移植 | M1 | 未开始 | 保留 `result` 参数模式 |
-| `Matrix2` `Matrix3` `Matrix4` `Quaternion` | 移植 | M1 | 未开始 | 增加 `toFloat32Array` 列主序上传辅助 |
-| `Ellipsoid` `EllipsoidGeodesic` `EllipsoidRhumbLine` `EllipsoidTangentPlane` `scaleToGeodeticSurface` | 移植 | M1 | 未开始 | — |
-| `Rectangle` `BoundingRectangle` `BoundingSphere` `OrientedBoundingBox` `AxisAlignedBoundingBox` | 移植 | M1 | 未开始 | — |
-| `Plane` `Ray` `IntersectionTests` `Intersections2D` `Interval` `Intersect` `Visibility` | 移植 | M1 | 未开始 | — |
-| `CullingVolume` `Occluder` `EllipsoidalOccluder` | 移植 | M1 | 未开始 | — |
-| `PerspectiveFrustum` `PerspectiveOffCenterFrustum` `OrthographicFrustum` `OrthographicOffCenterFrustum` | 改写 | M1 | 未开始 | 投影矩阵改 0..1 深度 + Reverse-Z；`computeCullingVolume` 保留 |
-| `Transforms` `HeadingPitchRoll` `HeadingPitchRange` `TranslationRotationScale` `ReferenceFrame` `TrackingReferenceFrame` | 移植 | M1 | 未开始 | — |
-| `EncodedCartesian3` | 移植 | M1 | 未开始 | RTE 高低位 |
-| `GeographicProjection` `WebMercatorProjection` `MapProjection` `Stereographic` | 移植 | M1 | 未开始 | — |
-| `GeographicTilingScheme` `WebMercatorTilingScheme` `TilingScheme` | 移植 | M1 | 未开始 | — |
-| `CubicRealPolynomial` `QuadraticRealPolynomial` `QuarticRealPolynomial` `TridiagonalSystemSolver` | 移植 | M1 | 未开始 | — |
+| `Math` | 移植 | M1 | 完成 | 导出名 `CesiumMath` |
+| `Cartesian2` `Cartesian3` `Cartesian4` `Cartographic` `Spherical` | 移植 | M1 | 完成 | 保留 `result` 参数模式 |
+| `Matrix2` `Matrix3` `Matrix4` `Quaternion` | 移植 | M1 | 完成 | 已加 `toFloat32Array` 列主序上传辅助 |
+| `Ellipsoid` `EllipsoidGeodesic` `EllipsoidRhumbLine` `EllipsoidTangentPlane` `scaleToGeodeticSurface` | 移植 | M1 | 完成 | — |
+| `Rectangle` `BoundingRectangle` `BoundingSphere` `OrientedBoundingBox` `AxisAlignedBoundingBox` | 移植 | M1 | 完成 | — |
+| `Plane` `Ray` `IntersectionTests` `Intersections2D` `Interval` `Intersect` `Visibility` | 移植 | M1 | 完成 | IntersectionTests 顶部 `@ts-nocheck` |
+| `CullingVolume` `Occluder` `EllipsoidalOccluder` | 移植 | M1 | 完成 | — |
+| `PerspectiveFrustum` `PerspectiveOffCenterFrustum` `OrthographicFrustum` `OrthographicOffCenterFrustum` | 改写 | M1 | 完成 | 投影矩阵改 0..1 深度 + Reverse-Z；`computeCullingVolume` 保留 |
+| `Transforms` `HeadingPitchRoll` `HeadingPitchRange` `TranslationRotationScale` `ReferenceFrame` `TrackingReferenceFrame` | 移植 | M1 | 完成 | ICRF 无 XYS/EOP 时返回 `undefined` |
+| `EncodedCartesian3` | 移植 | M1 | 完成 | RTE 高低位 |
+| `GeographicProjection` `WebMercatorProjection` `MapProjection` `Stereographic` | 移植 | M1 | 完成 | — |
+| `GeographicTilingScheme` `WebMercatorTilingScheme` `TilingScheme` | 移植 | M1 | 完成 | — |
+| `CubicRealPolynomial` `QuadraticRealPolynomial` `QuarticRealPolynomial` `TridiagonalSystemSolver` | 移植 | M1 | 完成 | 多项式顶部 `@ts-nocheck` |
 | `Spline` `LinearSpline` `HermiteSpline` `CatmullRomSpline` `QuaternionSpline` `ConstantSpline` `SteppedSpline` `MorphWeightSpline` `HermitePolynomialApproximation` `LagrangePolynomialApproximation` `LinearApproximation` `InterpolationAlgorithm` | 移植 | M5 | 未开始 | 动画与相机飞行需要 |
 | `EasingFunction` | 移植 | M2 | 未开始 | 相机飞行 |
-| `AttributeCompression` `ComponentDatatype` `IndexDatatype` `PrimitiveType` `VertexFormat` | 移植 | M1 | 未开始 | `ComponentDatatype` 去掉 WebGL 常量值依赖，改为映射到 `GPUVertexFormat` |
+| `AttributeCompression` `ComponentDatatype` `IndexDatatype` `PrimitiveType` `VertexFormat` | 移植 | M1 | 完成 | `ComponentDatatype` 映射到 `GPUVertexFormat` 名 |
 | `barycentricCoordinates` `pointInsideTriangle` `Tipsify` `WireframeIndexGenerator` | 移植 | M3 / M5 | 未开始 | — |
 | `MortonOrder` `HilbertOrder` `S2Cell` | 移植 | M5 | 未开始 | 隐式瓦片 |
-| `NearFarScalar` `DistanceDisplayCondition` `Color` `srgbToLinear` `createColorRamp` | 移植 | M1 / M9 | 未开始 | — |
+| `NearFarScalar` `DistanceDisplayCondition` `Color` `srgbToLinear` `createColorRamp` | 移植 | M1 / M9 | 进行中 | `NearFarScalar` `Color` `srgbToLinear` 已完成；`DistanceDisplayCondition` `createColorRamp` 留 M9 |
 
 ### 时间（M1，移植）
 
-| 模块 | 处理 | 里程碑 | 状态 |
-| --- | --- | --- | --- |
-| `JulianDate` `GregorianDate` `LeapSecond` `TimeStandard` `TimeConstants` `Iso8601` `isLeapYear` `TimeInterval` `TimeIntervalCollection` `ExtrapolationType` `InterpolationType` | 移植 | M1 | 未开始 |
-| `Clock` `ClockRange` `ClockStep` `getTimestamp` | 移植 | M1 | 未开始 |
-| `Simon1994PlanetaryPositions` `Iau2000Orientation` `Iau2006XysData` `Iau2006XysSample` `IauOrientationAxes` `IauOrientationParameters` `EarthOrientationParameters` `EarthOrientationParametersSample` | 移植 | M1 | 未开始 |
+| 模块 | 处理 | 里程碑 | 状态 | 备注 |
+| --- | --- | --- | --- | --- |
+| `JulianDate` `GregorianDate` `LeapSecond` `TimeStandard` `TimeConstants` `Iso8601` `isLeapYear` `TimeInterval` `TimeIntervalCollection` `ExtrapolationType` `InterpolationType` | 移植 | M1 | 完成 | — |
+| `Clock` `ClockRange` `ClockStep` `getTimestamp` | 移植 | M1 | 完成 | — |
+| `Simon1994PlanetaryPositions` `Iau2000Orientation` `Iau2006XysData` `Iau2006XysSample` `IauOrientationAxes` `IauOrientationParameters` `EarthOrientationParameters` `EarthOrientationParametersSample` | 移植 | M1 | 完成 | 无 XYS JSON 时 `computeXysRadians` 返回 `undefined`；EOP 无数据返回全 0；Simon1994 `@ts-nocheck` |
 
 ### 工具与基础设施（M1，移植）
 
 | 模块 | 处理 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- | --- | --- |
-| `defined` `Check` `DeveloperError` `RuntimeError` `destroyObject` `Frozen` `clone` `combine` `defer` `deprecationWarning` `oneTimeWarning` `formatError` `assert` | 移植 | M1 | 未开始 | `Check` 在生产构建剥离 |
-| `Event` `EventHelper` `wrapFunction` | 移植 | M1 | 未开始 | 泛型化 |
-| `Heap` `DoublyLinkedList` `Queue` `DoubleEndedPriorityQueue` `AssociativeArray` `ManagedArray` `binarySearch` `mergeSort` `arrayRemoveDuplicates` `subdivideArray` `addAllToArray` `Packable` `PackableForInterpolation` | 移植 | M1 | 未开始 | — |
-| `Resource` `Request` `RequestScheduler` `RequestState` `RequestType` `RequestErrorEvent` `DefaultProxy` `Proxy` `TrustedServers` `parseResponseHeaders` `objectToQuery` `queryToObject` `getAbsoluteUri` `getBaseUri` `getExtensionFromUri` `getFilenameFromUri` `isBlobUri` `isCrossOriginUrl` `isDataUri` `appendForwardSlash` `buildModuleUrl` `loadAndExecuteScript` | 移植 | M1 | 未开始 | `Resource.fetchImage` 改为返回 `ImageBitmap`；`loadAndExecuteScript`（JSONP）后置 |
-| `TaskProcessor` | 改写 | M1 | 未开始 | `new Worker(new URL())` 约定；保留 `scheduleTask` API |
-| `FeatureDetection` | 改写 | M0 | 完成 | M0 落地为 `rhi/GpuDevice.probe()`（`navigator.gpu` / 适配器 / `adapter.info` / features / limits / 是否 compatibility）与 `rhi/features.ts` 可选 feature 白名单，不再有独立 `FeatureDetection` 类；`supportsOffscreenCanvas` / `supportsImageBitmap` 等 DOM 探测留 M1 `core` 按需补 |
+| `defined` `Check` `DeveloperError` `RuntimeError` `destroyObject` `Frozen` `clone` `combine` `defer` `deprecationWarning` `oneTimeWarning` `formatError` `assert` | 移植 | M1 | 完成 | `Check.typeOf` 不能当 assertion function；生产剥离未做 |
+| `Event` `EventHelper` `wrapFunction` | 移植 | M1 | 完成 | 泛型化 |
+| `Heap` `DoublyLinkedList` `Queue` `DoubleEndedPriorityQueue` `AssociativeArray` `ManagedArray` `binarySearch` `mergeSort` `arrayRemoveDuplicates` `subdivideArray` `addAllToArray` `Packable` `PackableForInterpolation` | 移植 | M1 | 进行中 | 除 `Packable*` 外已完成；`DoubleEndedPriorityQueue` 为有序数组实现 |
+| `Resource` `Request` `RequestScheduler` `RequestState` `RequestType` `RequestErrorEvent` `DefaultProxy` `Proxy` `TrustedServers` `parseResponseHeaders` `objectToQuery` `queryToObject` `getAbsoluteUri` `getBaseUri` `getExtensionFromUri` `getFilenameFromUri` `isBlobUri` `isCrossOriginUrl` `isDataUri` `appendForwardSlash` `buildModuleUrl` `loadAndExecuteScript` | 移植 | M1 | 完成 | `fetchImage` → `ImageBitmap`；不用 urijs / XHR；`loadAndExecuteScript`（JSONP）仍后置 |
+| `TaskProcessor` | 改写 | M1 | 完成 | `new Worker(new URL())` + 可注入 factory；浏览器往返未测 |
+| `FeatureDetection` | 改写 | M0 / M1 | 完成 | WebGPU 在 `rhi/GpuDevice.probe()`；`core` 仅 endian / typed array / BigInt / WASM / Worker |
 | `Credit` | 移植 | M2 | 未开始 | — |
 | `Ion` `IonResource` | 移植 | M3 | 未开始 | — |
 | `getImagePixels` `getImageFromTypedArray` `loadImageFromTypedArray` `resizeImageToNextPowerOfTwo` `writeTextToCanvas` `getStringFromTypedArray` `getJsonFromTypedArray` `getMagic` `isBitSet` `createGuid` | 移植 | M2 / M9 | 未开始 | `resizeImageToNextPowerOfTwo` 可能不再需要 |
-| `Fullscreen` `ScreenSpaceEventHandler` `ScreenSpaceEventType` `KeyboardEventModifier` | 移植 | M2 | 未开始 | 相机控制依赖 |
+| `Fullscreen` `ScreenSpaceEventHandler` `ScreenSpaceEventType` `KeyboardEventModifier` | 移植 | M1 / M2 | 进行中 | Handler / Type / Modifier 已按清单 1.15 提前到 M1（注入 EventTarget）；`Fullscreen` 留 M2 |
 | `TexturePacker` | 移植 | M9 | 未开始 | 广告牌图集 |
 | `VideoSynchronizer` | 后置 | — | 未开始 | — |
 | `WebGLConstants` `webGLConstantToGlslType` `VulkanConstants` `PixelFormat` `CompressedTextureBuffer` | 弃用 / 改写 | — | — | `PixelFormat` 改写为 `GPUTextureFormat` 映射；`CompressedTextureBuffer` 改写为 KTX2 转码结果类型 |
@@ -191,17 +191,17 @@ fork 内 `ThreeGeospatial/*` 与 `Extension/Ocean/*` 的 GLSL（大气、云、�
 
 ## Workers（54 文件）
 
-| Worker | 处理 | 里程碑 |
-| --- | --- | --- |
-| `createTaskProcessorWorker` `transferTypedArrayTest` | 改写 | M1 |
-| `createVerticesFromHeightmap` | 移植 | M2 |
-| `createVerticesFromQuantizedTerrainMesh` `upsampleQuantizedTerrainMesh` `incrementallyBuildTerrainPicker` | 移植 | M3 |
-| `createVerticesFromCesium3DTilesTerrain` `upsampleVerticesFromCesium3DTilesTerrain` | 移植 | M3（可选） |
-| `decodeDraco` `transcodeKTX2` | 移植 | M5 |
-| `createGeometry` `combineGeometry` `create*Geometry`（约 30 个） | 移植 | M9 |
-| `createVectorTile*` `decodeI3S` `decodeGoogleEarthEnterprisePacket` | 后置 | — |
-| `gaussianSplatSorter` `gaussianSplatTextureGenerator` | 后置 | — |
-| 新增：`buildMeshlets`、`preprocessWeatherMap`、`generateCloudNoise`（若不用 compute） | 新增 | M7 / M8 |
+| Worker | 处理 | 里程碑 | 状态 |
+| --- | --- | --- | --- |
+| `createTaskProcessorWorker` `transferTypedArrayTest` | 改写 | M1 | `createTaskProcessorWorker` 完成；`transferTypedArrayTest` 未做 |
+| `createVerticesFromHeightmap` | 移植 | M2 | 未开始 |
+| `createVerticesFromQuantizedTerrainMesh` `upsampleQuantizedTerrainMesh` `incrementallyBuildTerrainPicker` | 移植 | M3 | 未开始 |
+| `createVerticesFromCesium3DTilesTerrain` `upsampleVerticesFromCesium3DTilesTerrain` | 移植 | M3（可选） | 未开始 |
+| `decodeDraco` `transcodeKTX2` | 移植 | M5 | 未开始 |
+| `createGeometry` `combineGeometry` `create*Geometry`（约 30 个） | 移植 | M9 | 未开始 |
+| `createVectorTile*` `decodeI3S` `decodeGoogleEarthEnterprisePacket` | 后置 | — | 未开始 |
+| `gaussianSplatSorter` `gaussianSplatTextureGenerator` | 后置 | — | 未开始 |
+| 新增：`buildMeshlets`、`preprocessWeatherMap`、`generateCloudNoise`（若不用 compute） | 新增 | M7 / M8 | 未开始 |
 
 ## Widgets（`packages/widgets`，弃用，Vue 3 重做）
 
