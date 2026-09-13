@@ -15,7 +15,7 @@ import { defined } from "./defined"
  * 对标 Cesium `Core/DeveloperError.js`。
  */
 export class DeveloperError extends Error {
-  override readonly name = "DeveloperError"
+  override readonly name: string = "DeveloperError"
 
   /**
    * @param message 错误说明；Cesium 允许省略

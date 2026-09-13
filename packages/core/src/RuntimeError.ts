@@ -15,13 +15,14 @@ import { defined } from "./defined"
  * 对标 Cesium `Core/RuntimeError.js`。
  */
 export class RuntimeError extends Error {
-  override readonly name = "RuntimeError"
+  override readonly name: string = "RuntimeError"
 
   /**
    * @param message 错误说明；Cesium 允许省略
+   * @param options 标准 `ErrorOptions`（如 `cause`），供 rhi 等调用方使用
    */
-  constructor(message?: string) {
-    super(message)
+  constructor(message?: string, options?: ErrorOptions) {
+    super(message, options)
     Object.setPrototypeOf(this, new.target.prototype)
   }
 

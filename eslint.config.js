@@ -127,17 +127,25 @@ export default defineConfig([
           leadingUnderscore: "allow",
         },
         { selector: "function", format: ["camelCase", "PascalCase"] },
+        { selector: "parameter", format: ["camelCase", "PascalCase"], leadingUnderscore: "allow" },
+        { selector: "objectLiteralMethod", format: ["camelCase", "PascalCase"] },
+        { selector: "typeMethod", format: ["camelCase", "PascalCase"] },
         { selector: "typeLike", format: ["PascalCase"] },
         { selector: "enumMember", format: ["PascalCase", "UPPER_CASE"] },
         { selector: "import", format: ["camelCase", "PascalCase", "UPPER_CASE"] },
         {
           selector: "classProperty",
-          modifiers: ["static", "readonly"],
-          format: ["UPPER_CASE", "camelCase"],
+          modifiers: ["static"],
+          format: ["UPPER_CASE", "camelCase", "PascalCase"],
+          leadingUnderscore: "allow",
         },
-        // 对象字面量属性可能需要匹配外部键（例如 WGSL 名称、HTTP 头）
+        // 对象字面量属性可能需要匹配外部键（例如 WGSL 名称、HTTP 头、Cesium 常量）
         { selector: "objectLiteralProperty", format: null },
-        { selector: "typeProperty", format: ["camelCase"], leadingUnderscore: "allow" },
+        {
+          selector: "typeProperty",
+          format: ["camelCase", "PascalCase", "UPPER_CASE"],
+          leadingUnderscore: "allow",
+        },
       ],
     },
   },
@@ -188,6 +196,37 @@ export default defineConfig([
       "vue/block-lang": ["error", { script: { lang: "ts" }, style: { lang: "less" } }],
       "vue/component-api-style": ["error", ["script-setup"]],
       "vue/define-macros-order": "error",
+    },
+  },
+
+  // Cesium 数值常量保持双精度原文，避免为过 lint 改算法
+  {
+    name: "core-cesium-constants",
+    files: ["packages/core/src/**/*.ts"],
+    rules: {
+      "no-loss-of-precision": "off",
+      "no-useless-assignment": "off",
+      "no-useless-escape": "off",
+      "@typescript-eslint/prefer-for-of": "off",
+    },
+  },
+
+  // Cesium 机械移植：保留原算法，严格类型后续补齐
+  {
+    name: "core-mechanical-ports",
+    files: [
+      "packages/core/src/CubicRealPolynomial.ts",
+      "packages/core/src/QuarticRealPolynomial.ts",
+      "packages/core/src/Simon1994PlanetaryPositions.ts",
+      "packages/core/src/IntersectionTests.ts",
+    ],
+    rules: {
+      "@typescript-eslint/ban-ts-comment": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/naming-convention": "off",
     },
   },
 
