@@ -26,6 +26,13 @@ export const EXAMPLES: readonly ExampleEntry[] = [
     milestone: "M0",
     load: () => import("./hello-triangle"),
   },
+  {
+    id: "hello-globe",
+    title: "Globe / OSM",
+    description: "零高度椭球 + OpenStreetMap 影像 + Reverse-Z / RTE 相机",
+    milestone: "M2",
+    load: () => import("./hello-globe"),
+  },
 ]
 
 export function findExample(id: string): ExampleEntry | undefined {

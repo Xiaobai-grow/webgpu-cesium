@@ -32,3 +32,26 @@ pre {
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
 }
+
+.webgpu-cesium-credits,
+.webgpu-cesium-perf {
+  position: absolute;
+  z-index: 2;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-bg-panel) 80%, transparent);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  pointer-events: none;
+}
+
+.webgpu-cesium-credits {
+  right: var(--space-3);
+  bottom: var(--space-3);
+}
+
+.webgpu-cesium-perf {
+  left: var(--space-3);
+  bottom: var(--space-3);
+  font-family: var(--font-mono);
+}
