@@ -1,7 +1,7 @@
 {
   "name": "@webgpu-cesium/widgets",
   "version": "0.0.0",
-  "description": "Vue 3 组件：Viewer 容器、时间轴、图层选择器、性能面板（M9 起实现）",
+  "description": "M2 最小 CesiumViewer（画布挂载、Credit、性能条）；完整 Viewer UI 留 M9",
   "type": "module",
   "license": "Apache-2.0",
   "sideEffects": false,

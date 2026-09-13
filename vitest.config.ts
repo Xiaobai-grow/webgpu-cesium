@@ -2,8 +2,8 @@
  * Vitest 根配置。
  *
  * Vitest 4 起 `vitest.workspace.*` 被移除，改为 `test.projects`（见 LOG 2026-09-13 [变更]）。
- * - Node 项目：core / shaders（纯逻辑，CI 必须全绿）
- * - 浏览器项目：rhi / renderer（Playwright Chromium，带 WebGPU 启动参数；无 GPU 时用例自行 skip）
+ * - Node 项目：core / shaders / scene（纯逻辑，CI 必须全绿）
+ * - 浏览器项目：rhi / renderer / scene-gpu（Playwright Chromium；无 GPU 时用例自行 skip）
  */
 import { fileURLToPath } from "node:url"
 import { playwright } from "@vitest/browser-playwright"
@@ -18,6 +18,8 @@ const workspaceAlias = {
   "@webgpu-cesium/rhi": `${root}packages/rhi/src/index.ts`,
   "@webgpu-cesium/shaders": `${root}packages/shaders/src/index.ts`,
   "@webgpu-cesium/renderer": `${root}packages/renderer/src/index.ts`,
+  "@webgpu-cesium/scene": `${root}packages/scene/src/index.ts`,
+  "@webgpu-cesium/widgets": `${root}packages/widgets/src/index.ts`,
 }
 
 /** Chromium WebGPU 启动参数；CI 无 GPU 时通过 WEBGPU_SWIFTSHADER=1 切到软件适配器 */
@@ -65,6 +67,15 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          name: "scene",
+          environment: "node",
+          include: ["packages/scene/src/**/*.test.ts"],
+          exclude: ["packages/scene/src/**/*.render.test.ts"],
+        },
+      },
+      {
+        extends: true,
+        test: {
           name: "rhi",
           include: ["packages/rhi/src/**/*.test.ts"],
           browser: {
@@ -80,6 +91,19 @@ export default defineConfig({
         test: {
           name: "renderer",
           include: ["packages/renderer/src/**/*.test.ts"],
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: browserProvider,
+            instances: [{ browser: "chromium" }],
+          },
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "scene-gpu",
+          include: ["packages/scene/src/**/*.render.test.ts"],
           browser: {
             enabled: true,
             headless: true,
