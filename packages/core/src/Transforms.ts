@@ -17,11 +17,12 @@ import { defined } from "./defined"
 import { DeveloperError } from "./DeveloperError"
 import { Ellipsoid } from "./Ellipsoid"
 import { type HeadingPitchRoll } from "./HeadingPitchRoll"
-import type { JulianDate } from "./JulianDate"
+import { JulianDate } from "./JulianDate"
 import { CesiumMath } from "./CesiumMath"
 import { Matrix3 } from "./Matrix3"
 import { Matrix4 } from "./Matrix4"
 import { Quaternion } from "./Quaternion"
+import { TimeConstants } from "./TimeConstants"
 
 /** 局部轴名 */
 export type LocalAxisName = "east" | "north" | "up" | "west" | "south" | "down"
@@ -266,6 +267,59 @@ export const Transforms = {
     }
     return undefined
   },
+
+  /**
+   * TEME→伪固定系（GMST 绕 Z）。无 XYS/EOP 时作为日月位置回退。
+   *
+   * @param date 儒略日
+   * @param result 可选结果
+   */
+  computeTemeToPseudoFixedMatrix(date: JulianDate, result?: Matrix3): Matrix3 {
+    Check.typeOf.object("date", date)
+    JulianDate.addSeconds(date, -JulianDate.computeTaiMinusUtc(date), temeDateUtc)
+    const utcDayNumber = temeDateUtc.dayNumber
+    const utcSecondsIntoDay = temeDateUtc.secondsOfDay
+    const diffDays = utcDayNumber - 2451545
+    const t =
+      utcSecondsIntoDay >= 43200.0
+        ? (diffDays + 0.5) / TimeConstants.DAYS_PER_JULIAN_CENTURY
+        : (diffDays - 0.5) / TimeConstants.DAYS_PER_JULIAN_CENTURY
+    const gmst0 = GMST_CONSTANT0 + t * (GMST_CONSTANT1 + t * (GMST_CONSTANT2 + t * GMST_CONSTANT3))
+    const angle = (gmst0 * TWO_PI_OVER_SECONDS_IN_DAY) % CesiumMath.TWO_PI
+    const ratio = WGS84_WR_PRECESSING + RATE_COEF * (utcDayNumber - 2451545.5)
+    const secondsSinceMidnight =
+      (utcSecondsIntoDay + TimeConstants.SECONDS_PER_DAY * 0.5) % TimeConstants.SECONDS_PER_DAY
+    const gha = angle + ratio * secondsSinceMidnight
+    const cosGha = Math.cos(gha)
+    const sinGha = Math.sin(gha)
+    if (!defined(result)) {
+      return new Matrix3(cosGha, sinGha, 0.0, -sinGha, cosGha, 0.0, 0.0, 0.0, 1.0)
+    }
+    result[0] = cosGha
+    result[1] = -sinGha
+    result[2] = 0.0
+    result[3] = sinGha
+    result[4] = cosGha
+    result[5] = 0.0
+    result[6] = 0.0
+    result[7] = 0.0
+    result[8] = 1.0
+    return result
+  },
+
+  /**
+   * ICRF→Fixed，无数据时退化为 TEME。对标 Cesium `computeIcrfToCentralBodyFixedMatrix`。
+   *
+   * @param date 儒略日
+   * @param result 可选结果
+   */
+  computeIcrfToCentralBodyFixedMatrix(date: JulianDate, result?: Matrix3): Matrix3 {
+    const icrf = Transforms.computeIcrfToFixedMatrix(date, result)
+    if (defined(icrf)) {
+      return icrf
+    }
+    return Transforms.computeTemeToPseudoFixedMatrix(date, result)
+  },
 }
 
 Transforms.eastNorthUpToFixedFrame = Transforms.localFrameToFixedFrameGenerator("east", "north")
@@ -278,3 +332,11 @@ const scratchScale = new Cartesian3(1.0, 1.0, 1.0)
 const scratchHPRMatrix4 = new Matrix4()
 const scratchENUMatrix4 = new Matrix4()
 const scratchHPRMatrix3 = new Matrix3()
+const temeDateUtc = new JulianDate()
+const GMST_CONSTANT0 = 6 * 3600 + 41 * 60 + 50.54841
+const GMST_CONSTANT1 = 8640184.812866
+const GMST_CONSTANT2 = 0.093104
+const GMST_CONSTANT3 = -6.2e-6
+const RATE_COEF = 1.1772758384668e-19
+const WGS84_WR_PRECESSING = 7.2921158553e-5
+const TWO_PI_OVER_SECONDS_IN_DAY = CesiumMath.TWO_PI / 86400.0
