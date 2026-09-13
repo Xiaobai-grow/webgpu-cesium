@@ -1,0 +1,33 @@
+# 依赖与构建产物
+node_modules/
+dist/
+.pnpm-store/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# 测试产物
+test-results/
+playwright-report/
+__screenshots__/**/*-actual.png
+__screenshots__/**/*-diff.png
+
+# 日志与临时文件
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.cache/
+tmp/
+
+# 编辑器与系统
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# 环境变量
+.env
+.env.*
+!.env.example
