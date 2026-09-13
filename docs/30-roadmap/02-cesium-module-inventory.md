@@ -54,10 +54,10 @@
 | `Event` `EventHelper` `wrapFunction` | 移植 | M1 | 完成 | 泛型化 |
 | `Heap` `DoublyLinkedList` `Queue` `DoubleEndedPriorityQueue` `AssociativeArray` `ManagedArray` `binarySearch` `mergeSort` `arrayRemoveDuplicates` `subdivideArray` `addAllToArray` `Packable` `PackableForInterpolation` | 移植 | M1 | 进行中 | 除 `Packable*` 外已完成；`DoubleEndedPriorityQueue` 为有序数组实现 |
 | `Resource` `Request` `RequestScheduler` `RequestState` `RequestType` `RequestErrorEvent` `DefaultProxy` `Proxy` `TrustedServers` `parseResponseHeaders` `objectToQuery` `queryToObject` `getAbsoluteUri` `getBaseUri` `getExtensionFromUri` `getFilenameFromUri` `isBlobUri` `isCrossOriginUrl` `isDataUri` `appendForwardSlash` `buildModuleUrl` `loadAndExecuteScript` | 移植 | M1 | 完成 | `fetchImage` → `ImageBitmap`；不用 urijs / XHR；`loadAndExecuteScript`（JSONP）仍后置 |
-| `TaskProcessor` | 改写 | M1 | 完成 | `new Worker(new URL())` + 可注入 factory；浏览器往返未测 |
+| `TaskProcessor` | 改写 | M1 / M3 | 完成 | `new Worker(new URL())` + 可注入 factory；M3 `TaskProcessor.browser.test.ts` 已测 typed array 往返 |
 | `FeatureDetection` | 改写 | M0 / M1 | 完成 | WebGPU 在 `rhi/GpuDevice.probe()`；`core` 仅 endian / typed array / BigInt / WASM / Worker |
 | `Credit` | 移植 | M2 | 完成 | 无 DOMPurify，`text` 去标签 |
-| `Ion` `IonResource` | 移植 | M3 | 未开始 | — |
+| `Ion` `IonResource` | 移植 | M3 | 完成 | 无内置评估 token；`fromAssetId` / endpoint / credits；无 urijs |
 | `getImagePixels` `getImageFromTypedArray` `loadImageFromTypedArray` `resizeImageToNextPowerOfTwo` `writeTextToCanvas` `getStringFromTypedArray` `getJsonFromTypedArray` `getMagic` `isBitSet` `createGuid` | 移植 | M2 / M9 | 未开始 | `resizeImageToNextPowerOfTwo` 可能不再需要 |
 | `Fullscreen` `ScreenSpaceEventHandler` `ScreenSpaceEventType` `KeyboardEventModifier` | 移植 | M1 / M2 | 进行中 | Handler / Type / Modifier 已按清单 1.15 提前到 M1（注入 EventTarget）；`Fullscreen` 留 M2 |
 | `TexturePacker` | 移植 | M9 | 未开始 | 广告牌图集 |
@@ -72,11 +72,11 @@
 
 | 模块 | 处理 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- | --- | --- |
-| `TerrainProvider` `TerrainData` `TerrainMesh` `TerrainEncoding` `TerrainQuantization` `HeightmapEncoding` `TileProviderError` | 移植 | M2 / M3 | 进行中 | M2 仅 NONE 量化 + 零高度；`TileAvailability` `TileEdge` 留 M3 |
-| `EllipsoidTerrainProvider` `HeightmapTessellator` | 移植 | M2 | 完成 | 16×16 全零，主线程同步细分，无裙边 |
-| `CesiumTerrainProvider` `QuantizedMeshTerrainData` `HeightmapTerrainData` `createWorldTerrainAsync` `createWorldBathymetryAsync` `ApproximateTerrainHeights` `VerticalExaggeration` `sampleTerrain` `sampleTerrainMostDetailed` `TerrainPicker` | 移植 | M3 | 未开始 | — |
-| `CustomHeightmapTerrainProvider` `ArcGISTiledElevationTerrainProvider` | 移植 | M3 | 未开始 | — |
-| `Cesium3DTilesTerrainProvider` `Cesium3DTilesTerrainData` `Cesium3DTilesTerrainGeometryProcessor` | 移植 | M3（可选） | 未开始 | — |
+| `TerrainProvider` `TerrainData` `TerrainMesh` `TerrainEncoding` `TerrainQuantization` `HeightmapEncoding` `TileProviderError` | 移植 | M2 / M3 | 完成 | M3 仍 NONE 量化（5-float）；`TileAvailability` 已移植；`TileEdge` 未做 |
+| `EllipsoidTerrainProvider` `HeightmapTessellator` | 移植 | M2 / M3 | 完成 | 16×16 全零；M3 可选裙边与垂直夸张 |
+| `CesiumTerrainProvider` `QuantizedMeshTerrainData` `HeightmapTerrainData` `createWorldTerrainAsync` `createWorldBathymetryAsync` `ApproximateTerrainHeights` `VerticalExaggeration` `sampleTerrain` `sampleTerrainMostDetailed` `TerrainPicker` | 移植 | M3 | 完成 | ATH 不捆绑完整 JSON；upsample QM 改为高度图；Picker 无 BVH；失败高度用 NaN |
+| `CustomHeightmapTerrainProvider` `ArcGISTiledElevationTerrainProvider` | 移植 | M3 | 部分 | CustomHeightmap 完成；ArcGIS 元数据完成，LERC 解码未移植 |
+| `Cesium3DTilesTerrainProvider` `Cesium3DTilesTerrainData` `Cesium3DTilesTerrainGeometryProcessor` | 移植 | M3（可选） | 未开始 | 时间不够，顺延 |
 | `GoogleEarthEnterprise*` `decodeGoogleEarthEnterpriseData` `VRTheWorldTerrainProvider` | 后置 | — | 未开始 | — |
 | `VectorProvider` `VectorPipeline` `decodeVectorPolylinePositions` | 后置 | — | 未开始 | 矢量瓦片 |
 
@@ -121,11 +121,11 @@
 | 模块 | 处理 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- | --- | --- |
 | `QuadtreePrimitive` `QuadtreeTile` `QuadtreeTileProvider` `QuadtreeTileLoadState` `QuadtreeOccluders` `TileReplacementQueue` `TileSelectionResult` `TileBoundingRegion` | 移植 | M2 | 完成 | 精简移植，非 2000 行 1:1 |
-| `Globe` `GlobeSurfaceTile` `GlobeSurfaceTileProvider` `TerrainFillMesh` `TerrainState` `Terrain` | 改写 | M2 / M3 | 进行中 | M2 零高度路径；`TerrainFillMesh` 留 M3 |
+| `Globe` `GlobeSurfaceTile` `GlobeSurfaceTileProvider` `TerrainFillMesh` `TerrainState` `Terrain` | 改写 | M2 / M3 | 完成 | `Globe.pick` / `getHeight`、裙边、上采样、填洞、换 Provider 重建四叉树；`Terrain` 单例未做 |
 | `GlobeSurfaceShaderSet` `GlobeDepth` `GlobeTranslucency*` `TranslucentTileClassification` | 弃用 / 后置 | — | — | 着色器变体由组合器管理；地表透明后置 |
 | `ImageryLayer` `ImageryLayerCollection` `Imagery` `TileImagery` `ImageryState` `ImageryLayerFeatureInfo` `GetFeatureInfoFormat` `TimeDynamicImagery` | 移植 / 改写 | M2 | 进行中 | 层 / Imagery / TileImagery 已做；要素查询与时序影像未做 |
 | `ImageryProvider` `UrlTemplateImageryProvider` `OpenStreetMapImageryProvider` `TileMapServiceImageryProvider` `SingleTileImageryProvider` `GridImageryProvider` `TileCoordinatesImageryProvider` `TileDiscardPolicy` `DiscardMissingTileImagePolicy` `DiscardEmptyTileImagePolicy` `NeverTileDiscardPolicy` | 移植 | M2 | 进行中 | OSM / URL / TMS / Grid / TileCoordinates / DiscardPolicy 已做；`SingleTile` 未做 |
-| `WebMapServiceImageryProvider` `WebMapTileServiceImageryProvider` `ArcGisMapServerImageryProvider` `ArcGisMapService` `ArcGisBaseMapType` `BingMapsImageryProvider` `BingMapsStyle` `IonImageryProvider` `IonImageryProviderFactory` `IonWorldImageryStyle` `createWorldImageryAsync` `Google2DImageryProvider` `Azure2DImageryProvider` `MapboxImageryProvider` `MapboxStyleImageryProvider` | 移植 | M3 | 未开始 | — |
+| `WebMapServiceImageryProvider` `WebMapTileServiceImageryProvider` `ArcGisMapServerImageryProvider` `ArcGisMapService` `ArcGisBaseMapType` `BingMapsImageryProvider` `BingMapsStyle` `IonImageryProvider` `IonImageryProviderFactory` `IonWorldImageryStyle` `createWorldImageryAsync` `Google2DImageryProvider` `Azure2DImageryProvider` `MapboxImageryProvider` `MapboxStyleImageryProvider` | 移植 | M3 | 未开始 | 超出 M3 里程碑正文（地形）；本里程碑只接线 Geographic↔Mercator 重投影 |
 | `GoogleEarthEnterpriseImageryProvider` `GoogleEarthEnterpriseMapsProvider` | 后置 | — | 未开始 | — |
 | `Megatexture` | 参考 | M8 | 未开始 | 体素用的图集；虚拟纹理自研 |
 
@@ -194,8 +194,8 @@ fork 内 `ThreeGeospatial/*` 与 `Extension/Ocean/*` 的 GLSL（大气、云、�
 | Worker | 处理 | 里程碑 | 状态 |
 | --- | --- | --- | --- |
 | `createTaskProcessorWorker` `transferTypedArrayTest` | 改写 | M1 | `createTaskProcessorWorker` 完成；`transferTypedArrayTest` 未做 |
-| `createVerticesFromHeightmap` | 移植 | M2 | 完成 | 默认同步调用；Worker 入口已导出，未默认启用 |
-| `createVerticesFromQuantizedTerrainMesh` `upsampleQuantizedTerrainMesh` `incrementallyBuildTerrainPicker` | 移植 | M3 | 未开始 |
+| `createVerticesFromHeightmap` | 移植 | M2 / M3 | 完成（默认同步；注入 TaskProcessor 后走 Worker） |
+| `createVerticesFromQuantizedTerrainMesh` `upsampleQuantizedTerrainMesh` `incrementallyBuildTerrainPicker` | 移植 | M3 | 部分（upsample 改高度图；Picker 无增量 BVH） |
 | `createVerticesFromCesium3DTilesTerrain` `upsampleVerticesFromCesium3DTilesTerrain` | 移植 | M3（可选） | 未开始 |
 | `decodeDraco` `transcodeKTX2` | 移植 | M5 | 未开始 |
 | `createGeometry` `combineGeometry` `create*Geometry`（约 30 个） | 移植 | M9 | 未开始 |

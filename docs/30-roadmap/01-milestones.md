@@ -47,7 +47,7 @@ M3 与 M4 可并行；M5 依赖 M4 的 RenderItem / 材质接口稳定；M7 / M8
 
 ## M2 球出现
 
-- **状态**：完成（2026-09-13，分支 `feat/m2-first-globe`，未合并 `main`）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
+- **状态**：完成（2026-09-13，已合并 `main`，PR #3）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
 - **目标**：示例站看到带影像的地球，可旋转 / 缩放 / 倾斜，缩放到街区级别不抖动。
 - **范围**：`Scene`、`FrameState`、`Camera`（Reverse-Z 投影、相机相对视图矩阵）、`ScreenSpaceCameraController`（3D 分支）、`Globe`、`QuadtreePrimitive` 系列、`GlobeSurfaceTile`（无地形状态）、`EllipsoidTerrainProvider` + `HeightmapTessellator`（零高度）Worker、`ImageryLayer(Collection)`、`Imagery`、`TileImagery`、`ImageryProvider` 基类、`UrlTemplateImageryProvider`、`OpenStreetMapImageryProvider`、`TileMapServiceImageryProvider`、影像图集（`texture_2d_array`）、地形着色器（前向 Lambert）、`SkyBox` 占位（纯色）、帧级 uniform、性能面板（CPU 帧时间、瓦片数）。
 - **不做**：地形高程、大气、光照模型、G-buffer、拾取。
@@ -56,6 +56,7 @@ M3 与 M4 可并行；M5 依赖 M4 的 RenderItem / 材质接口稳定；M7 / M8
 
 ## M3 地形
 
+- **状态**：完成（2026-09-13，分支 `feat/m3-terrain`，未合并 `main`）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
 - **目标**：Cesium 世界地形（quantized-mesh）与自定义高度图可加载，含法线、裙边、填充网格、垂直夸张、地形拾取。
 - **范围**：`CesiumTerrainProvider`、`QuantizedMeshTerrainData`、`HeightmapTerrainData`、`TerrainEncoding` / `TerrainQuantization` / `TerrainMesh`、`createVerticesFromQuantizedTerrainMesh` / `upsampleQuantizedTerrainMesh` / `createVerticesFromHeightmap` Worker、`TerrainFillMesh`、`TileAvailability`、`ApproximateTerrainHeights`、`VerticalExaggeration`、`Globe.pick` / `getHeight`、`sampleTerrain(MostDetailed)`、`CustomHeightmapTerrainProvider`、`ArcGISTiledElevationTerrainProvider`、`Cesium3DTilesTerrainProvider`（若时间允许）、水面掩码输入、相机地形碰撞。
 - **不做**：地形光照升级（M4 之后由 G-buffer 处理）；海洋。

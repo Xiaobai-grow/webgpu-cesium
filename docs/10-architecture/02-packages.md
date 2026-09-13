@@ -68,4 +68,5 @@ webgpu-cesium/
 - [x] M0：tsdown 对多包 + `.wgsl` 资源的打包已验证（2026-09-13）：7 个包各一份 `tsdown.config.ts`（`format: esm`、`dts: true`、`fixedExtension: false`、`plugins: [wgsl()]`），`pnpm build` 一次通过，`.wgsl` 被内联为字符串进 `dist/index.js`；注意点：peer 依赖（`vite` / `rolldown` 类型）需 `deps.neverBundle` 排除，否则 dts 步骤会尝试打包其类型。
 - [x] M1：`core` 在 Vitest Node 零 DOM 跑通代表单测（2026-09-13）：`test.projects` → `packages/core/src/**/*.test.ts`，23 文件 122 用例；`Resource` / `TaskProcessor` / `ScreenSpaceEventHandler` 用注入点避开 DOM lib。未整本搬运 Cesium Specs。
 - [x] M2：地形网格默认主线程同步细分（2026-09-13）：16×16 仅 256 顶点，`createVerticesFromHeightmap` 已导出但未默认走 Worker。`TaskProcessor` 浏览器 `new URL()` 往返顺延 M3 量化网格。
+- [x] M3：`TaskProcessor` 浏览器 `new URL()` typed array 往返（2026-09-13，`core-browser` / `echoWorker`）；地形 Worker 入口在 `packages/core/src/workers/`，由 `setTerrainTaskProcessors` 注入，不改 `core` 无 DOM 约束。文档原写 Worker 放 `scene/workers`，实际放 `core`（与 `createVertices*` 同包）。
 - [ ] M5：`tiles` 不依赖 `scene` 时如何获得 `FrameState`（用 `renderer` 定义的 `FrameContext` 接口而非 `scene` 类型）。

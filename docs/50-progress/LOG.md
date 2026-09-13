@@ -2,6 +2,20 @@
 
 按日期倒序。标签：`[对齐]` `[决策]` `[变更]` `[推翻]` `[完成]` `[阻塞]` `[风险]`。
 
+## 2026-09-13（第六轮：M3）
+
+- [完成] M3 落地于分支 `feat/m3-terrain`（未合并 `main`）：高度图裙边 / 量化网格 / `sampleTerrain` / `CesiumTerrainProvider` / `CustomHeightmap` / `TerrainFillMesh` / `Globe.pick` / `getHeight` / 相机碰地 / Geographic↔Mercator 重投影 / `hello-terrain`。M2 已在此前合并 `main`（PR #3）。
+- [完成] 验证：`pnpm build` / `lint` / `typecheck` 通过；`pnpm test` 35 文件 198 用例（含 `core-browser` Worker 往返与 `scene-gpu` 高度图地球 `copyTextureToBuffer` 非全黑）。本机有 WebGPU。示例站 hello-terrain 可见带高度的地球。
+- [决策] 顶点仍为 NONE 量化 5-float（position + uv），不为法线改 stride；`encodedNormals` / `waterMask` 留 CPU。地形光照升级仍属 M4。
+- [决策] `Ion.defaultAccessToken` 为空，不内置 Cesium 评估 token；演示默认 `CustomHeightmapTerrainProvider` 高斯丘，`?ion=` 可选世界地形。
+- [决策] 量化网格上采样输出 17×17 `HeightmapTerrainData`，不再回编码 QM。`TerrainPicker` 不做增量 BVH。`ApproximateTerrainHeights` 不捆绑完整 JSON。
+- [决策] ArcGIS LERC 不移植解码器（请求几何抛错）。`Cesium3DTilesTerrainProvider` 为可选，本轮不做。WMS/WMTS/Bing/Ion 影像 Provider 超出里程碑正文，只接线重投影。
+- [变更] `upsampleQuantizedTerrainMesh`、`TerrainFillMesh`（常数高填洞）、`sampleTerrain` 失败高度用 NaN（`Cartographic.height` 不能 `undefined`）。
+- [变更] Worker 默认关闭；`setTerrainTaskProcessors` 注入后 `createMesh` 走 TaskProcessor。Worker 入口在 `core/src/workers/`（文档曾写 `scene/workers`）。
+- [变更] 方案不兼容时不再跳过影像：`reproject.wgsl` compute，失败回退 CPU。hello-globe 仍用 WebMercator 对齐 OSM；hello-terrain 用 Geographic + OSM 走重投影。
+- [变更] ESLint `globalIgnores` 增加 `packages/core/src/**/*.browser.test.ts`（core tsconfig 无 DOM，projectService 收不到该文件）。
+- [风险] ion 世界地形山区截图未在无 token 环境闭环。官方 OSM 仍有使用策略，e2e 继续 `?imagery=grid`。GPU `rgba8unorm` storage 可能不可用，依赖 CPU 回退。贴地 `depthBias` 未标定。
+
 ## 2026-09-13（第五轮：M2）
 
 - [完成] M2 2.1–2.13 落地于分支 `feat/m2-first-globe`（未合并 `main`）：`Scene` / `Camera`（Reverse-Z + RTE）/ 四叉树 / 零高度椭球 / OSM 影像 / Credit / `CesiumViewer` / `hello-globe`。本机 Chrome 打开示例站可见带 OSM 纹理的地球（非洲 / 欧洲轮廓清晰），Credit「© OpenStreetMap contributors」，CPU ≈ 1 ms。

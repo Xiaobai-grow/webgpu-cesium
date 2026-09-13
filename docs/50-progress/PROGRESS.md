@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-**M2 完成（分支 `feat/m2-first-globe`，未合并 `main`）。** 示例站「Globe / OSM」可见贴 OSM 的零高度椭球；Camera Reverse-Z + RTE；四叉树 + `EllipsoidTerrainProvider`；OSM Credit。M1 已合并 `main`（PR #2）。
+**M3 完成（分支 `feat/m3-terrain`，未合并 `main`）。** 自定义高度图山体 + 裙边 / 填洞 / `Globe.pick` / `getHeight` / 相机碰地 / Geographic↔Mercator 重投影；量化网格与 `CesiumTerrainProvider` 在 core 可加载（ion 需自备 token）。M2 已合并 `main`（PR #3）。
 
 ## 里程碑状态
 
@@ -14,8 +14,8 @@
 | Git 仓库初始化与推送 | 完成 | 2026-09-13 | 2026-09-13 | `origin/main` |
 | M0 脚手架 + 设备 + 三角形 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #1） |
 | M1 core 移植 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #2） |
-| M2 球出现 | 完成 | 2026-09-13 | 2026-09-13 | 分支 `feat/m2-first-globe`；未开 PR |
-| M3 地形 | 未开始 | — | — | — |
+| M2 球出现 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #3） |
+| M3 地形 | 完成 | 2026-09-13 | 2026-09-13 | 分支 `feat/m3-terrain`；未开 PR |
 | M4 Render Graph / 光照 / 大气 | 未开始 | — | — | — |
 | M5 glTF / 3D Tiles | 未开始 | — | — | — |
 | M6 阴影 / 后处理 / TAA / HDR | 未开始 | — | — | — |
@@ -55,7 +55,7 @@
 | 1.9 | 时间 | 完成 | JulianDate / Clock / TimeInterval 单测 | — |
 | 1.10 | 天体历表 | 部分 | 模块已导出；无数据时 EOP 全 0、XYS `undefined` | 未提交 XYS JSON；无独立历表单测 |
 | 1.11 | 网络与调度 | 完成 | Resource / URI 单测；可注入 `fetch` | 不用 urijs / XHR / JSONP |
-| 1.12 | Worker 调度 | 部分 | `TaskProcessor` + 可注入 factory；`createTaskProcessorWorker` | 无浏览器 typed array 往返测试 |
+| 1.12 | Worker 调度 | 完成 | `TaskProcessor` + 可注入 factory；M3 浏览器 typed array 往返 | — |
 | 1.13 | 数据结构 | 完成 | `mergeSort` 单测；Heap / Queue / 链表等已移植 | `Packable*` 未移植 |
 | 1.14 | 编码与类型 | 完成 | Color / srgbToLinear 单测；`ComponentDatatype` → `GPUVertexFormat` 名 | `createColorRamp` / `DistanceDisplayCondition` 留 M9 |
 | 1.15 | 输入 | 部分 | `ScreenSpaceEventHandler` 可注入 EventTarget | 无合成事件浏览器测试 |
@@ -69,15 +69,38 @@
 | 2.3 | FrameUniforms | 完成 | 矩阵 + `cameraPositionHigh/Low`；成员顺序单测 | 未引入 `wgsl_reflect` |
 | 2.4 | SSCC 3D | 部分 | 左旋 / 右倾 / 滚轮 / 惯性 | 无 Cesium 输入录制对比 |
 | 2.5 | 四叉树 | 完成 | 0 级坐标、太空 / 近地 LOD | 非 1:1 移植 |
-| 2.6 | 零高度地形 | 完成 | 256 顶点 / 1350 索引 | 默认同步，无裙边 |
+| 2.6 | 零高度地形 | 完成 | 256 顶点 / 1350 索引 | M3 起可选裙边；默认同步 |
 | 2.7 | GlobeSurfaceTile | 完成 | GPU 上传 + RenderItem `pipelineKey` | — |
 | 2.8 | 影像层 | 完成 | URL 模板、OSM Credit、Grid | `SingleTile` 未做 |
-| 2.9 | 图集 | 部分 | `texture_2d_array` 上传 | `reproject.wgsl` 未接线 |
+| 2.9 | 图集 | 完成 | `texture_2d_array` 上传；M3 接 `reproject.wgsl` | GPU 失败回退 CPU |
 | 2.10 | 地形着色器 | 完成 | 组合器快照；RTE + Lambert | 单层，无 `override` 层数 |
 | 2.11 | Globe + 示例 | 完成 | `hello-globe` 看见 OSM 地球 | 地形用 WebMercator 对齐 OSM |
 | 2.12 | 性能面板 | 完成 | CPU / 瓦片 / items / pipelines | — |
 | 2.13 | Playwright + 回读 | 完成 | GPU `copyTextureToBuffer` 非全黑；三视角 e2e | 无 WebGPU 则 skip |
 | 2.14 | 精度 100 m | 部分 | RTE 编码单测 | 无 100 m 录屏抖动 |
+
+## M3 清单（自列；first-globe checklist 无 M3 表）
+
+| # | 任务 | 状态 | 已验证 | 未验证 / 备注 |
+| --- | --- | --- | --- | --- |
+| 3.1 | 高度图裙边 / interpolate / upsample | 完成 | `HeightmapTessellator` + `m3-terrain.test.ts` | 无裙边时仍 256 / 1350 |
+| 3.2 | quantized-mesh 解析与网格 | 完成 | 编解码夹具 + `createVerticesFromQuantizedTerrainMesh` | 顶点仍 5-float，法线只留 CPU |
+| 3.3 | QM upsample | 完成 | 上采样为 17×17 `HeightmapTerrainData` | **偏离** Cesium 再编码 QM |
+| 3.4 | `sampleTerrain` / `MostDetailed` | 完成 | 与 `positionToTileXY` 瓦片矩形对照 | 失败高度为 NaN |
+| 3.5 | `TileAvailability` / `VerticalExaggeration` / ATH | 完成 | 可用性四叉树；ATH 可注入表 | 不捆绑 Cesium 大 JSON |
+| 3.6 | `TerrainPicker` | 完成 | 射线–三角形 | 无增量 BVH |
+| 3.7 | `CustomHeightmapTerrainProvider` | 完成 | hello-terrain 高斯丘 | — |
+| 3.8 | `CesiumTerrainProvider` / World Terrain / Bathymetry | 完成 | mock layer.json + 合成 QM | 示例连 ion 需 token |
+| 3.9 | `Ion` / `IonResource` | 完成 | endpoint / credits 单测 | 无默认 token |
+| 3.10 | ArcGIS 高程 | 部分 | `fromUrl` 元数据 | **无 LERC 解码** |
+| 3.11 | `Cesium3DTilesTerrainProvider` | 未做 | — | 可选，未启动 |
+| 3.12 | 地形 Worker | 完成 | 注入后 `createMesh` 走 TaskProcessor；`core-browser` 往返 | 默认同步 |
+| 3.13 | `TerrainFillMesh` | 完成 | 9×9 常数高 + 裙边 | 非邻边缝合 |
+| 3.14 | `Globe.pick` / `getHeight` | 完成 | Node 插值 / 射线单测 | — |
+| 3.15 | 相机碰地 | 完成 | `clampCameraToTerrain` | 无 Cesium 输入录制对比 |
+| 3.16 | Geographic↔Mercator 重投影 | 完成 | UV 单测；hello-terrain Geographic + OSM | GPU `rgba8unorm` storage 失败则 CPU |
+| 3.17 | `hello-terrain` 示例 | 完成 | 示例站山体可见 | e2e 用 `?imagery=grid` |
+| 3.18 | inventory 中 WMS/WMTS/Bing/Ion 影像 | 未做 | — | 超出里程碑正文 |
 
 ## 进行中
 
@@ -89,9 +112,9 @@
 
 ## 下一步
 
-1. 审阅 `feat/m2-first-globe`，**不要合并 main**，按需开 PR。
-2. M3：量化网格 / 高度图地形、裙边、Worker 上传、相机碰地。
-3. 接 Geographic↔Mercator GPU 重投影；补 Cesium 输入录制与 100 m 抖动对比。
+1. 审阅 `feat/m3-terrain`，**不要合并 main**，按需开 PR。
+2. M4：Render Graph 完整化、G-buffer、延迟光照、大气；不要为反射上 `wgsl_reflect` 除非 M4 明确要求。
+3. 补 ion 世界地形山区截图（需 token）；LERC；贴地 `depthBias`（M9）。
 
 ## 待验证项汇总（跨文档）
 
@@ -106,7 +129,7 @@ M1（已关闭）：
 
 - [x] `core` 在 Vitest Node 零 DOM 跑通代表单测（[02](../10-architecture/02-packages.md)）
 - [x] Reverse-Z 投影矩阵 near→1 / far→0（[05](../10-architecture/05-scene-camera-precision.md) 数值部分）
-- [x] Worker `new URL()` 浏览器打包与 typed array 往返（M2 改同步细分，顺延 M3）
+- [x] Worker `new URL()` 浏览器打包与 typed array 往返（M3 `core-browser` 已关闭）
 
 M2（已关闭，结论见各文档「待验证」节）：
 
@@ -116,11 +139,11 @@ M2（已关闭，结论见各文档「待验证」节）：
 - [x] Reverse-Z + RTE；高空须天底（[05](../10-architecture/05-scene-camera-precision.md)）
 - [x] 图集上传 + `copyTextureToBuffer`（[06](../10-architecture/06-globe-terrain-imagery.md)）
 
-M3：
+M3（已关闭，结论见各文档「待验证」节）：
 
-- Reverse-Z 真地形 z-fighting 与成千瓦片 RTE 成本（[05](../10-architecture/05-scene-camera-precision.md)）
-- 动态偏移 vs storage（[03](../10-architecture/03-rhi-and-render-graph.md)）
-- Geographic↔Mercator GPU 重投影；Worker 上传延迟
+- [x] Reverse-Z 真地形沿用 M2 深度与 RTE；成千瓦片成本未测（[05](../10-architecture/05-scene-camera-precision.md)）
+- [x] 仍用每瓦片 uniform，未上动态偏移 / storage（[03](../10-architecture/03-rhi-and-render-graph.md)）
+- [x] Geographic↔Mercator 重投影接线；Worker 默认同步、可注入（[06](../10-architecture/06-globe-terrain-imagery.md)）
 
 M4：
 

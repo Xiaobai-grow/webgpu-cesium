@@ -64,3 +64,7 @@
 - 示例站「Globe / OSM」通过 2.13、2.14。
 - `PROGRESS.md` 标记 M0–M2 完成；`02-cesium-module-inventory.md` 对应行状态改为「完成」。
 - 架构文档 01–06 的「待验证」中标注 M0–M2 的项目已被验证或修正。
+
+## M3
+
+M3 不在本表。范围、验收与自列清单见 [01-milestones.md](01-milestones.md) 的 M3 节、[02-cesium-module-inventory.md](02-cesium-module-inventory.md) 地形行，以及 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
