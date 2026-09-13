@@ -1,7 +1,7 @@
 {
-  "name": "@webgpu-cesium/webgpu-cesium",
+  "name": "@webgpu-cesium/environment",
   "version": "0.0.0",
-  "description": "聚合包：re-export 全部 @webgpu-cesium/* 包，便于 CDN 与快速上手",
+  "description": "Hillaire 大气、日月星、EnvironmentState（M4）",
   "type": "module",
   "license": "Apache-2.0",
   "sideEffects": false,
@@ -21,11 +21,8 @@
   },
   "dependencies": {
     "@webgpu-cesium/core": "workspace:*",
-    "@webgpu-cesium/environment": "workspace:*",
     "@webgpu-cesium/renderer": "workspace:*",
     "@webgpu-cesium/rhi": "workspace:*",
-    "@webgpu-cesium/scene": "workspace:*",
-    "@webgpu-cesium/shaders": "workspace:*",
-    "@webgpu-cesium/widgets": "workspace:*"
+    "@webgpu-cesium/shaders": "workspace:*"
   }
 }
