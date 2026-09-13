@@ -97,9 +97,22 @@ cameraPositionLow: vec3<f32>,
 deltaTime: f32,
 viewport: vec4<f32>,
 frameNumber: u32,
-_padding0: u32,
-_padding1: u32,
-_padding2: u32,
+toneMappingMode: u32,
+exposure: f32,
+moonPhase: f32,
+sunDirectionECEF: vec3<f32>,
+cameraHeight: f32,
+sunDirectionView: vec3<f32>,
+atmosphereRadius: f32,
+sunIrradiance: vec3<f32>,
+aerialPerspectiveEnabled: f32,
+moonDirectionECEF: vec3<f32>,
+moonIntensity: f32,
+inverseViewMatrix: mat4x4<f32>,
+planetRadius: f32,
+_padding0: f32,
+_padding1: f32,
+_padding2: f32,
 }
 @group(0) @binding(0) var<uniform> frame: FrameUniforms;
 struct VertexOutput {
@@ -162,7 +175,7 @@ textureStore(destTexture, vec2<i32>(id.xy), i32(reproject.layerIndex), color);
 }"
 `;
 
-exports[`地形着色器组合 > terrain.wgsl 组合含 RTE 与 Lambert 1`] = `
+exports[`地形着色器组合 > terrain.wgsl 组合含 RTE 与 G-buffer 输出 1`] = `
 "const PI: f32 = 3.14159265358979323846;
 const TWO_PI: f32 = 6.28318530717958647692;
 const HALF_PI: f32 = 1.57079632679489661923;
@@ -202,9 +215,22 @@ cameraPositionLow: vec3<f32>,
 deltaTime: f32,
 viewport: vec4<f32>,
 frameNumber: u32,
-_padding0: u32,
-_padding1: u32,
-_padding2: u32,
+toneMappingMode: u32,
+exposure: f32,
+moonPhase: f32,
+sunDirectionECEF: vec3<f32>,
+cameraHeight: f32,
+sunDirectionView: vec3<f32>,
+atmosphereRadius: f32,
+sunIrradiance: vec3<f32>,
+aerialPerspectiveEnabled: f32,
+moonDirectionECEF: vec3<f32>,
+moonIntensity: f32,
+inverseViewMatrix: mat4x4<f32>,
+planetRadius: f32,
+_padding0: f32,
+_padding1: f32,
+_padding2: f32,
 }
 @group(0) @binding(0) var<uniform> frame: FrameUniforms;
 fn rteToEye(positionHigh: vec3<f32>, positionLow: vec3<f32>) -> vec3<f32> {
@@ -215,6 +241,78 @@ return highDiff + lowDiff;
 fn rteToClip(positionHigh: vec3<f32>, positionLow: vec3<f32>, localPosition: vec3<f32>) -> vec4<f32> {
 let eye = rteToEye(positionHigh, positionLow) + localPosition;
 return frame.projectionMatrix * frame.viewMatrix * vec4<f32>(eye, 1.0);
+}
+fn srgbToLinear(value: f32) -> f32 {
+if (value <= 0.04045) {
+return value / 12.92;
+}
+return pow((value + 0.055) / 1.055, 2.4);
+}
+fn srgbToLinear3(srgb: vec3<f32>) -> vec3<f32> {
+return vec3<f32>(srgbToLinear(srgb.r), srgbToLinear(srgb.g), srgbToLinear(srgb.b));
+}
+fn linearToSrgb(value: f32) -> f32 {
+if (value <= 0.0031308) {
+return value * 12.92;
+}
+return 1.055 * pow(value, 1.0 / 2.4) - 0.055;
+}
+fn linearToSrgb3(linear: vec3<f32>) -> vec3<f32> {
+return vec3<f32>(linearToSrgb(linear.r), linearToSrgb(linear.g), linearToSrgb(linear.b));
+}
+fn luminance(color: vec3<f32>) -> f32 {
+return dot(color, vec3<f32>(0.2126, 0.7152, 0.0722));
+}
+fn octEncode(n: vec3<f32>) -> vec2<f32> {
+var p = n.xy / (abs(n.x) + abs(n.y) + abs(n.z));
+if (n.z < 0.0) {
+let sx = select(-1.0, 1.0, p.x >= 0.0);
+let sy = select(-1.0, 1.0, p.y >= 0.0);
+p = (vec2<f32>(1.0) - abs(p.yx)) * vec2<f32>(sx, sy);
+}
+return p * 0.5 + 0.5;
+}
+fn octDecode(f: vec2<f32>) -> vec3<f32> {
+let u = f * 2.0 - 1.0;
+var n = vec3<f32>(u.x, u.y, 1.0 - abs(u.x) - abs(u.y));
+let t = max(-n.z, 0.0);
+n.x += select(t, -t, n.x >= 0.0);
+n.y += select(t, -t, n.y >= 0.0);
+return normalize(n);
+}
+struct MaterialOutput {
+baseColor: vec3<f32>,
+normal: vec3<f32>,
+roughness: f32,
+metalness: f32,
+emissive: vec3<f32>,
+occlusion: f32,
+opacity: f32,
+materialId: u32,
+clearcoat: f32,
+clearcoatRoughness: f32,
+}
+const MATERIAL_ID_TERRAIN: u32 = 1u;
+const MATERIAL_ID_STANDARD: u32 = 2u;
+const MATERIAL_ID_UNLIT: u32 = 3u;
+const MATERIAL_ID_PHYSICAL: u32 = 4u;
+struct GBufferFragmentOutput {
+@location(0) gb0: vec4<f32>,
+@location(1) gb1: vec4<f32>,
+@location(2) gb2: vec4<f32>,
+@location(3) gb3: vec4<f32>,
+}
+fn writeGBuffer(material: MaterialOutput) -> GBufferFragmentOutput {
+var out: GBufferFragmentOutput;
+out.gb0 = vec4<f32>(material.baseColor, f32(material.materialId) / 255.0);
+let oct = octEncode(normalize(material.normal));
+out.gb1 = vec4<f32>(oct, 0.0, 1.0);
+out.gb2 = vec4<f32>(material.roughness, material.metalness, material.occlusion, 0.0);
+out.gb3 = vec4<f32>(material.emissive, material.clearcoat * 0.5 + material.clearcoatRoughness * 0.5);
+return out;
+}
+fn unpackMaterialId(gb0: vec4<f32>) -> u32 {
+return u32(round(gb0.a * 255.0));
 }
 struct TileUniforms {
 centerHigh: vec3<f32>,
@@ -244,17 +342,25 @@ out.worldApprox = tile.centerHigh + tile.centerLow + input.position;
 return out;
 }
 @fragment
-fn fsTerrain(input: TerrainVertexOutput) -> @location(0) vec4<f32> {
+fn fsTerrain(input: TerrainVertexOutput) -> GBufferFragmentOutput {
 let normal = normalize(input.worldApprox * WGS84_ONE_OVER_RADII_SQUARED);
-let camera = frame.cameraPositionHigh + frame.cameraPositionLow;
-let lightDir = normalize(camera);
-let lambert = max(dot(normal, lightDir), 0.4);
-var albedo = tile.baseColor.rgb;
+var albedo = srgbToLinear3(tile.baseColor.rgb);
 if (tile.layerIndex != 0xffffffffu) {
 let sampled = textureSample(imageryAtlas, imagerySampler, input.texcoord, i32(tile.layerIndex));
-albedo = mix(albedo, sampled.rgb, sampled.a);
+albedo = mix(albedo, srgbToLinear3(sampled.rgb), sampled.a);
 }
-return vec4<f32>(albedo * lambert, 1.0);
+var material: MaterialOutput;
+material.baseColor = albedo;
+material.normal = normal;
+material.roughness = 0.92;
+material.metalness = 0.0;
+material.emissive = vec3<f32>(0.0);
+material.occlusion = 1.0;
+material.opacity = 1.0;
+material.materialId = MATERIAL_ID_TERRAIN;
+material.clearcoat = 0.0;
+material.clearcoatRoughness = 0.0;
+return writeGBuffer(material);
 }"
 `;
 
