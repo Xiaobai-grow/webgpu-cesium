@@ -24,6 +24,19 @@ describe("FrameUniformsData", () => {
       "deltaTime",
       "viewport",
       "frameNumber",
+      "toneMappingMode",
+      "exposure",
+      "moonPhase",
+      "sunDirectionECEF",
+      "cameraHeight",
+      "sunDirectionView",
+      "atmosphereRadius",
+      "sunIrradiance",
+      "aerialPerspectiveEnabled",
+      "moonDirectionECEF",
+      "moonIntensity",
+      "inverseViewMatrix",
+      "planetRadius",
       "_padding0",
       "_padding1",
       "_padding2",
@@ -49,6 +62,7 @@ describe("FrameUniformsData", () => {
     expect(data.readU32(FRAME_UNIFORMS_LAYOUT.frameNumber)).toBe(42)
     // 相机位置仍为 0
     expect(data.readF32(FRAME_UNIFORMS_LAYOUT.cameraPositionHigh)).toBe(0)
+    expect(FRAME_UNIFORMS_LAYOUT.byteLength).toBeLessThan(64 * 1024)
   })
 
   it("update 写入 RTE 高低位与视图矩阵", () => {

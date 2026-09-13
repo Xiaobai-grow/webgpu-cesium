@@ -2,8 +2,7 @@
  * FrameUniforms：group 0 帧级 uniform 的 CPU 侧数据与 GPU buffer。
  *
  * 布局与 `@webgpu-cesium/shaders` 的 `builtin/frame.wgsl` 手写对齐。
- * M2 未引入 `wgsl_reflect`：偏移表仍手写，由 `FrameUniforms.test.ts` 解析 WGSL 成员顺序锁定。
- * M2 起填写视图 / 投影矩阵与 `cameraPositionHigh/Low`（RTE）。
+ * M4 仍不引入 `wgsl_reflect`：偏移表手写，由 `FrameUniforms.test.ts` 锁定成员顺序。
  */
 import { FRAME_UNIFORMS_BYTE_LENGTH } from "@webgpu-cesium/shaders"
 import { type GpuDevice, makeLabel } from "@webgpu-cesium/rhi"
@@ -23,6 +22,19 @@ export const FRAME_UNIFORMS_LAYOUT = Object.freeze({
   deltaTime: 284,
   viewport: 288,
   frameNumber: 304,
+  toneMappingMode: 308,
+  exposure: 312,
+  moonPhase: 316,
+  sunDirectionECEF: 320,
+  cameraHeight: 332,
+  sunDirectionView: 336,
+  atmosphereRadius: 348,
+  sunIrradiance: 352,
+  aerialPerspectiveEnabled: 364,
+  moonDirectionECEF: 368,
+  moonIntensity: 380,
+  inverseViewMatrix: 384,
+  planetRadius: 448,
 })
 
 export interface FrameUniformsValues {
@@ -38,9 +50,22 @@ export interface FrameUniformsValues {
   projectionMatrix?: ArrayLike<number>
   viewProjectionMatrix?: ArrayLike<number>
   inverseProjectionMatrix?: ArrayLike<number>
+  inverseViewMatrix?: ArrayLike<number>
   /** ECEF 相机位置（f64），写入高低位 */
   cameraPositionHigh?: readonly [number, number, number]
   cameraPositionLow?: readonly [number, number, number]
+  toneMappingMode?: number
+  exposure?: number
+  moonPhase?: number
+  sunDirectionECEF?: readonly [number, number, number]
+  sunDirectionView?: readonly [number, number, number]
+  sunIrradiance?: readonly [number, number, number]
+  cameraHeight?: number
+  atmosphereRadius?: number
+  planetRadius?: number
+  aerialPerspectiveEnabled?: number
+  moonDirectionECEF?: readonly [number, number, number]
+  moonIntensity?: number
 }
 
 const IDENTITY = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
@@ -55,6 +80,12 @@ export class FrameUniformsData {
 
   constructor() {
     this.setIdentityMatrices()
+    this.f32[FRAME_UNIFORMS_LAYOUT.exposure / 4] = 1
+    this.f32[FRAME_UNIFORMS_LAYOUT.planetRadius / 4] = 6378137
+    this.f32[FRAME_UNIFORMS_LAYOUT.atmosphereRadius / 4] = 6478137
+    this.f32[FRAME_UNIFORMS_LAYOUT.aerialPerspectiveEnabled / 4] = 1
+    this.f32.set([1, 1, 1], FRAME_UNIFORMS_LAYOUT.sunIrradiance / 4)
+    this.f32.set([0, 0, 1], FRAME_UNIFORMS_LAYOUT.sunDirectionECEF / 4)
   }
 
   /** 四个矩阵置单位矩阵（M2 之前的占位） */
@@ -65,6 +96,7 @@ export class FrameUniformsData {
       layout.projectionMatrix,
       layout.viewProjectionMatrix,
       layout.inverseProjectionMatrix,
+      layout.inverseViewMatrix,
     ]) {
       this.f32.set(IDENTITY, offset / 4)
     }
@@ -93,11 +125,50 @@ export class FrameUniformsData {
     if (values.inverseProjectionMatrix !== undefined) {
       this.setMatrix(layout.inverseProjectionMatrix, values.inverseProjectionMatrix)
     }
+    if (values.inverseViewMatrix !== undefined) {
+      this.setMatrix(layout.inverseViewMatrix, values.inverseViewMatrix)
+    }
     if (values.cameraPositionHigh !== undefined) {
       this.f32.set(values.cameraPositionHigh, layout.cameraPositionHigh / 4)
     }
     if (values.cameraPositionLow !== undefined) {
       this.f32.set(values.cameraPositionLow, layout.cameraPositionLow / 4)
+    }
+    if (values.toneMappingMode !== undefined) {
+      this.u32[layout.toneMappingMode / 4] = values.toneMappingMode >>> 0
+    }
+    if (values.exposure !== undefined) {
+      this.f32[layout.exposure / 4] = values.exposure
+    }
+    if (values.moonPhase !== undefined) {
+      this.f32[layout.moonPhase / 4] = values.moonPhase
+    }
+    if (values.sunDirectionECEF !== undefined) {
+      this.f32.set(values.sunDirectionECEF, layout.sunDirectionECEF / 4)
+    }
+    if (values.sunDirectionView !== undefined) {
+      this.f32.set(values.sunDirectionView, layout.sunDirectionView / 4)
+    }
+    if (values.sunIrradiance !== undefined) {
+      this.f32.set(values.sunIrradiance, layout.sunIrradiance / 4)
+    }
+    if (values.cameraHeight !== undefined) {
+      this.f32[layout.cameraHeight / 4] = values.cameraHeight
+    }
+    if (values.atmosphereRadius !== undefined) {
+      this.f32[layout.atmosphereRadius / 4] = values.atmosphereRadius
+    }
+    if (values.planetRadius !== undefined) {
+      this.f32[layout.planetRadius / 4] = values.planetRadius
+    }
+    if (values.aerialPerspectiveEnabled !== undefined) {
+      this.f32[layout.aerialPerspectiveEnabled / 4] = values.aerialPerspectiveEnabled
+    }
+    if (values.moonDirectionECEF !== undefined) {
+      this.f32.set(values.moonDirectionECEF, layout.moonDirectionECEF / 4)
+    }
+    if (values.moonIntensity !== undefined) {
+      this.f32[layout.moonIntensity / 4] = values.moonIntensity
     }
   }
 
