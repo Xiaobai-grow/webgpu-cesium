@@ -33,6 +33,13 @@ export const EXAMPLES: readonly ExampleEntry[] = [
     milestone: "M2",
     load: () => import("./hello-globe"),
   },
+  {
+    id: "hello-terrain",
+    title: "Terrain / Heightmap",
+    description: "自定义高度图山体（对比 hello-globe 零高度）；可选 ion 世界地形",
+    milestone: "M3",
+    load: () => import("./hello-terrain"),
+  },
 ]
 
 export function findExample(id: string): ExampleEntry | undefined {
