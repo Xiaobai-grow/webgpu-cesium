@@ -1,0 +1,29 @@
+{
+  "name": "@webgpu-cesium/shaders",
+  "version": "0.0.0",
+  "description": "WGSL 模块源码、组合器（#import / #if）与反射（后置）",
+  "type": "module",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --project shaders"
+  },
+  "dependencies": {
+    "@webgpu-cesium/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@webgpu-cesium/wgsl-plugin": "workspace:*"
+  }
+}
