@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    /* 组合器是纯字符串处理，不依赖 DOM / GPU；.wgsl 导入声明来自 wgsl-plugin */
+    "lib": ["ES2022"],
+    "types": ["@webgpu-cesium/wgsl-plugin/client"]
+  },
+  "include": ["src", "tsdown.config.ts"]
+}

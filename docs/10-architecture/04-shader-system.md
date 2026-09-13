@@ -83,7 +83,7 @@ WGSL 本身没有 include / 宏。组合器是一个纯字符串处理器（放�
 ### 5. 命名与风格
 
 - 文件与模块路径 kebab-case；函数 camelCase；结构体 PascalCase；常量 UPPER_SNAKE_CASE；uniform 结构体成员 camelCase。
-- 内置函数前缀不再用 `czm_`；用命名空间目录区分（`ellipsoid_intersect`、`depth_linearize` 由 `as` 前缀生成，或直接靶向名 `intersectEllipsoid`）。最终选一种并在 M0 前确定，写进本节。
+- 内置函数前缀不再用 `czm_`。**M0 已定**：`#import` 为整文件导入、不改名，内置函数直接用靶向名 camelCase（如 `intersectEllipsoid`、`linearizeDepth`），按目录（`builtin/`、`globe/`、`model/`…）区分归属；同名冲突目前由 WGSL 编译器报错（组合器开发模式的顶层符号重名检查列为 M2 TODO）。不引入 `as` 前缀语法。
 - 每个 `.wgsl` 顶部有注释头：用途、依赖的 defines、期望的 group 绑定。
 - 用 `wgsl-analyzer` 做语法检查与格式化（编辑器与 CI）。
 
@@ -109,7 +109,7 @@ WGSL 本身没有 include / 宏。组合器是一个纯字符串处理器（放�
 
 ## 待验证
 
-- [ ] M0：自研组合器最小子集 + `wgsl_reflect` 能否覆盖三角形与清屏；错误行号映射效果。
+- [x] M0：自研组合器最小子集已覆盖三角形与清屏（2026-09-13）：`#import`（拓扑排序、去重、循环依赖报错）、`#if / #elif / #else / #endif`（布尔 / 整数 defines，`== != > < >= <=`、`&& || !`）、去注释与统一空白、`sourceMap`（输出行 → 原文件与行号）与 `hash`；`formatCompilationMessages()` 把 `GPUCompilationInfo` 的行号映射回原始 `.wgsl` 文件，Hello Triangle 示例开发期打印。`wgsl_reflect` M0 未引入（bind group layout 手写），反射覆盖度顺延到 M2 的 2.3。未实现：`override` 透传（原样输出，尚无用例）、`#import` 选择性导入符号（整文件导入）。
 - [ ] M2：地形着色器（影像合成 N 层）用 `override` 层数 vs `#if` 展开的 pipeline 数与性能。
 - [ ] M4：group 0 `FrameUniforms` 结构大小是否超过 `maxUniformBufferBindingSize` 的保守值（64 KB），大气 LUT 是否需要独立 group。
 - [ ] M5：Model 管线阶段的「接口点」设计能否同时支持内部阶段与用户自定义着色器。

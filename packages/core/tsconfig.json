@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    /* core 不引用 DOM 与 WebGPU 类型，可在 Node 与 Worker 中运行 */
+    "lib": ["ES2022"],
+    "types": []
+  },
+  "include": ["src", "tsdown.config.ts"]
+}

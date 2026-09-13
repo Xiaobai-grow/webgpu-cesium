@@ -108,6 +108,6 @@ flowchart LR
 
 ## 待验证
 
-- [ ] M0：RHI 之上最小 Render Graph（清屏 + 一个三角形 pass）的 CPU 开销与代码量。
+- [x] M0：最小 Render Graph 已落地（2026-09-13）：`renderer/src/graph/RenderGraph.ts` 约 530 行 + `types.ts` 约 85 行（含注释），提供 `addPass / importTexture / createTexture / compile / execute / reset`，编译做未读 pass 裁剪 + 依赖拓扑排序，执行创建单个 `GPUCommandEncoder`；每帧重建一次（Hello Triangle 单 pass）CPU 开销在 Performance 面板中不可见（< 0.1 ms）。多 pass 下的每帧重建成本与「稳定 pass + 动态 RenderItem」策略留 M2 验证。
 - [ ] M2：帧图在每帧瓦片集合变化下是否需要重编译，还是可用「稳定 pass + 动态 RenderItem 列表」避免。
 - [ ] M4：Env 作为插件 pass 组注入帧图的接口是否够用（需要读 G-buffer 深度、写 HDR 颜色）。

@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HUSKY: 0
+
+jobs:
+  check:
+    name: lint / typecheck / test(node) / build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        # 版本取自 package.json 的 packageManager 字段
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: 格式检查
+        run: pnpm format:check
+
+      - name: 构建库（tools + packages）
+        run: pnpm build
+
+      - name: 类型检查
+        run: pnpm typecheck
+
+      - name: 单元测试（Node：core / shaders）
+        run: pnpm test:node
+
+      - name: 构建示例站
+        run: pnpm build:examples
+
+  browser:
+    name: test(browser, SwiftShader) / e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # 软件 WebGPU（SwiftShader）在 CI 上可能不可用，允许失败但保留日志
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 安装 Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: 浏览器单元测试（rhi / renderer）
+        env:
+          WEBGPU_SWIFTSHADER: "1"
+        run: pnpm test:browser
+
+      - name: 示例站 E2E 截图
+        env:
+          WEBGPU_SWIFTSHADER: "1"
+        run: pnpm e2e
+
+      - name: 上传 Playwright 报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/examples/playwright-report
+          retention-days: 7

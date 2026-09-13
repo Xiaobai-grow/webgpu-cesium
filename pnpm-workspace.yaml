@@ -1,0 +1,13 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+  - "tools/*"
+
+# pnpm 10：构建脚本白名单（默认拒绝依赖的 postinstall）
+onlyBuiltDependencies:
+  - esbuild
+  - rolldown
+  - "@rolldown/binding-win32-x64-msvc"
+  - playwright
+  - "@playwright/browser-chromium"
+  - vue-demi

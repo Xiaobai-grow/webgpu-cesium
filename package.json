@@ -1,0 +1,69 @@
+{
+  "name": "webgpu-cesium-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "用 TypeScript + WebGPU + WGSL 重写 CesiumJS 渲染引擎与场景层的 monorepo",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Xiaobai-grow/webgpu-cesium.git"
+  },
+  "packageManager": "pnpm@10.26.2",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "prepare": "husky && pnpm --filter @webgpu-cesium/wgsl-plugin build",
+    "build": "pnpm -r --filter \"./tools/**\" --filter \"./packages/**\" run build",
+    "build:examples": "pnpm --filter examples build",
+    "dev": "pnpm --filter examples dev",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "vitest run",
+    "test:node": "vitest run --project core --project shaders",
+    "test:browser": "vitest run --project rhi --project renderer",
+    "test:watch": "vitest",
+    "e2e": "pnpm --filter examples e2e",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "clean": "pnpm -r exec rimraf dist"
+  },
+  "lint-staged": {
+    "*.{ts,vue,js,mjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml,yml,less}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@changesets/cli": "^3.0.2",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.5.1",
+    "@vitest/browser-playwright": "^5.0.0",
+    "@webgpu-cesium/wgsl-plugin": "workspace:*",
+    "@webgpu/types": "^0.1.72",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.11.0",
+    "globals": "^17.12.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "playwright": "^1.63.0",
+    "prettier": "^3.9.6",
+    "rimraf": "^6.0.1",
+    "tsdown": "^0.23.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.0",
+    "vue-eslint-parser": "^10.2.0"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@webgpu-cesium/rhi",
+  "version": "0.0.0",
+  "description": "WebGPU 薄封装：GpuDevice 初始化与能力探测、pipeline / bind group layout / sampler 缓存",
+  "type": "module",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --project rhi"
+  },
+  "dependencies": {
+    "@webgpu-cesium/core": "workspace:*"
+  }
+}

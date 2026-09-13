@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["@webgpu/types", "@webgpu-cesium/wgsl-plugin/client", "node"]
+  },
+  "include": ["vitest.config.ts", "eslint.config.js"]
+}

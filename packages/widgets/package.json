@@ -1,0 +1,30 @@
+{
+  "name": "@webgpu-cesium/widgets",
+  "version": "0.0.0",
+  "description": "Vue 3 组件：Viewer 容器、时间轴、图层选择器、性能面板（M9 起实现）",
+  "type": "module",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@webgpu-cesium/core": "workspace:*",
+    "@webgpu-cesium/rhi": "workspace:*",
+    "@webgpu-cesium/scene": "workspace:*"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  }
+}

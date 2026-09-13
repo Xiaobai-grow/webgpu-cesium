@@ -1,0 +1,122 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`composeShader #if / #elif / #else > #if 未闭合报错并指向 #if 行 1`] = `"unclosed.wgsl:2: #if 未闭合（缺少 #endif）"`;
+
+exports[`composeShader #if / #elif / #else > HAS_NORMAL 为真取第一分支 1`] = `
+"fn normal() -> vec3<f32> { return vec3<f32>(0.0, 0.0, 1.0); }
+fn debug() {}"
+`;
+
+exports[`composeShader #if / #elif / #else > 全部为假取 #else 分支 1`] = `
+"fn normal() -> vec3<f32> { return vec3<f32>(0.0); }
+fn debug() {}"
+`;
+
+exports[`composeShader #if / #elif / #else > 嵌套条件与条件内 #import 1`] = `
+"fn c() -> f32 { return 1.0; }
+fn both() {}
+fn always() {}"
+`;
+
+exports[`composeShader #if / #elif / #else > 整数比较 == 取第二分支 1`] = `"fn normal() -> vec3<f32> { return vec3<f32>(0.0, 1.0, 0.0); }"`;
+
+exports[`composeShader #import > 循环依赖报错并给出链路 1`] = `"cycle-b.wgsl:2: 循环依赖：cycle-a.wgsl -> cycle-b.wgsl -> cycle-a.wgsl"`;
+
+exports[`composeShader #import > 找不到模块时指向 #import 所在行 1`] = `"missing.wgsl:2: 找不到模块 "nope.wgsl""`;
+
+exports[`composeShader #import > 拓扑排序、去重，依赖在前 1`] = `
+"fn c() -> f32 { return 1.0; }
+fn b() -> f32 {
+return c() * 2.0;
+}
+fn a() -> f32 { return b() + c(); }"
+`;
+
+exports[`composeShader #import > 拓扑排序、去重，依赖在前 2`] = `
+[
+  {
+    "file": "c.wgsl",
+    "line": 3,
+  },
+  {
+    "file": "b.wgsl",
+    "line": 2,
+  },
+  {
+    "file": "b.wgsl",
+    "line": 3,
+  },
+  {
+    "file": "b.wgsl",
+    "line": 4,
+  },
+  {
+    "file": "a.wgsl",
+    "line": 4,
+  },
+]
+`;
+
+exports[`内置模块 > 三角形着色器可组合内置模块 1`] = `
+"const PI: f32 = 3.14159265358979323846;
+const TWO_PI: f32 = 6.28318530717958647692;
+const HALF_PI: f32 = 1.57079632679489661923;
+const QUARTER_PI: f32 = 0.78539816339744830962;
+const ONE_OVER_PI: f32 = 0.31830988618379067154;
+const ONE_OVER_TWO_PI: f32 = 0.15915494309189533577;
+const RADIANS_PER_DEGREE: f32 = 0.01745329251994329577;
+const DEGREES_PER_RADIAN: f32 = 57.29577951308232087680;
+const EPSILON1: f32 = 0.1;
+const EPSILON2: f32 = 0.01;
+const EPSILON3: f32 = 0.001;
+const EPSILON4: f32 = 0.0001;
+const EPSILON5: f32 = 0.00001;
+const EPSILON6: f32 = 0.000001;
+const EPSILON7: f32 = 0.0000001;
+const WGS84_RADII: vec3<f32> = vec3<f32>(6378137.0, 6378137.0, 6356752.3142451793);
+const WGS84_ONE_OVER_RADII: vec3<f32> = vec3<f32>(
+1.567855942887398e-7,
+1.567855942887398e-7,
+1.573130351105623e-7,
+);
+const WGS84_ONE_OVER_RADII_SQUARED: vec3<f32> = vec3<f32>(
+2.458172257647332e-14,
+2.458172257647332e-14,
+2.474739135950327e-14,
+);
+const SOLAR_RADIUS: f32 = 695700000.0;
+const LUNAR_RADIUS: f32 = 1737400.0;
+struct FrameUniforms {
+viewMatrix: mat4x4<f32>,
+projectionMatrix: mat4x4<f32>,
+viewProjectionMatrix: mat4x4<f32>,
+inverseProjectionMatrix: mat4x4<f32>,
+cameraPositionHigh: vec3<f32>,
+time: f32,
+cameraPositionLow: vec3<f32>,
+deltaTime: f32,
+viewport: vec4<f32>,
+frameNumber: u32,
+_padding0: u32,
+_padding1: u32,
+_padding2: u32,
+}
+@group(0) @binding(0) var<uniform> frame: FrameUniforms;
+struct VertexOutput {
+@builtin(position) position: vec4<f32>,
+@location(0) color: vec3<f32>,
+}
+@vertex
+fn vsMain(@location(0) position: vec2<f32>, @location(1) color: vec3<f32>) -> VertexOutput {
+let angle = frame.time * HALF_PI;
+var out: VertexOutput;
+out.position = vec4<f32>(position, 0.0, 1.0);
+out.color = color;
+return out;
+}"
+`;
+
+exports[`行号映射 > formatCompilationMessages 输出原始位置 1`] = `
+"error b.wgsl:3:12: unresolved value 'c'
+warning <composed>:42:1: out of range"
+`;
