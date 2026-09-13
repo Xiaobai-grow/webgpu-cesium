@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-**M3 完成（分支 `feat/m3-terrain`，未合并 `main`）。** 自定义高度图山体 + 裙边 / 填洞 / `Globe.pick` / `getHeight` / 相机碰地 / Geographic↔Mercator 重投影；量化网格与 `CesiumTerrainProvider` 在 core 可加载（ion 需自备 token）。M2 已合并 `main`（PR #3）。
+**M3 完成（分支 `feat/m3-terrain`，未合并 `main`）。** 自定义高度图山体 + 裙边 / 填洞 / `Globe.pick` / `getHeight` / 相机碰地 / Geographic↔Mercator 重投影；量化网格与 `CesiumTerrainProvider` 在 core 可加载（ion 需自备 token）。`hello-terrain?terrain=mars3d` 可测 mars3d 中国地形。M2 已合并 `main`（PR #3）。
 
 ## 里程碑状态
 
@@ -90,7 +90,7 @@
 | 3.5 | `TileAvailability` / `VerticalExaggeration` / ATH | 完成 | 可用性四叉树；ATH 可注入表 | 不捆绑 Cesium 大 JSON |
 | 3.6 | `TerrainPicker` | 完成 | 射线–三角形 | 无增量 BVH |
 | 3.7 | `CustomHeightmapTerrainProvider` | 完成 | hello-terrain 高斯丘 | — |
-| 3.8 | `CesiumTerrainProvider` / World Terrain / Bathymetry | 完成 | mock layer.json + 合成 QM | 示例连 ion 需 token |
+| 3.8 | `CesiumTerrainProvider` / World Terrain / Bathymetry | 完成 | mock layer.json + 合成 QM；mars3d 形态 mock | 示例连 ion 需 token；mars3d 见 `?terrain=mars3d` |
 | 3.9 | `Ion` / `IonResource` | 完成 | endpoint / credits 单测 | 无默认 token |
 | 3.10 | ArcGIS 高程 | 部分 | `fromUrl` 元数据 | **无 LERC 解码** |
 | 3.11 | `Cesium3DTilesTerrainProvider` | 未做 | — | 可选，未启动 |
@@ -99,7 +99,7 @@
 | 3.14 | `Globe.pick` / `getHeight` | 完成 | Node 插值 / 射线单测 | — |
 | 3.15 | 相机碰地 | 完成 | `clampCameraToTerrain` | 无 Cesium 输入录制对比 |
 | 3.16 | Geographic↔Mercator 重投影 | 完成 | UV 单测；hello-terrain Geographic + OSM | GPU `rgba8unorm` storage 失败则 CPU |
-| 3.17 | `hello-terrain` 示例 | 完成 | 示例站山体可见 | e2e 用 `?imagery=grid` |
+| 3.17 | `hello-terrain` 示例 | 完成 | 示例站山体可见；`?terrain=mars3d` 中国地形 | e2e 用 `?imagery=grid`，不打外网地形 |
 | 3.18 | inventory 中 WMS/WMTS/Bing/Ion 影像 | 未做 | — | 超出里程碑正文 |
 
 ## 进行中
@@ -114,7 +114,7 @@
 
 1. 审阅 `feat/m3-terrain`，**不要合并 main**，按需开 PR。
 2. M4：Render Graph 完整化、G-buffer、延迟光照、大气；不要为反射上 `wgsl_reflect` 除非 M4 明确要求。
-3. 补 ion 世界地形山区截图（需 token）；LERC；贴地 `depthBias`（M9）。
+3. 补 ion 世界地形山区截图（需 token）；LERC；贴地 `depthBias`（M9）。本地可用 `http://localhost:5173/#/examples/hello-terrain-china?terrain=mars3d` 看四姑娘山一带山地。
 
 ## 待验证项汇总（跨文档）
 

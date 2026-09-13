@@ -14,7 +14,11 @@ const activeId = computed(() => (typeof route.params.id === "string" ? route.par
         <RouterLink
           class="example-list__item"
           :class="{ 'example-list__item--active': entry.id === activeId }"
-          :to="{ name: 'example', params: { id: entry.id } }"
+          :to="
+            entry.query
+              ? { name: 'example', params: { id: entry.id }, query: entry.query }
+              : { name: 'example', params: { id: entry.id } }
+          "
           :data-example-id="entry.id"
         >
           <span class="example-list__title">{{ entry.title }}</span>

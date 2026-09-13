@@ -287,7 +287,9 @@ export class CesiumTerrainProvider extends TerrainProvider {
       )
 
     if (defined(data.attribution)) {
-      this._tileCredits.push(new Credit(data.attribution))
+      const attribution = new Credit(data.attribution, true)
+      this._tileCredits.push(attribution)
+      this.credit ??= attribution
     }
     if (resource instanceof IonResource) {
       this._tileCredits.push(...resource.credits)

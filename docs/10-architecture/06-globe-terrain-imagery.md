@@ -74,4 +74,4 @@ Cesium 的 `TerrainEncoding` 已支持量化（`BITS12`）与非量化两种布�
 - [x] M2：`texture_2d_array` 图集 + 每瓦片 uniform（2026-09-13）：group 0 frame / group 1 图集 / group 2 tile；地形与影像须 0 级瓦片数相同（hello-globe 用 WebMercator 对齐 OSM）。国家尺度 64 瓦片、1 条 pipeline。256 layer 未在太空–国家路径触发。`reproject.wgsl` 已写未接线。像素断言用 `copyTextureToBuffer`，禁止 2d `drawImage` 截 WebGPU canvas。
 - [x] M3：Worker → `writeBuffer`（2026-09-13）：默认仍同步细分；`setTerrainTaskProcessors` 注入后 `createMesh` 走 TaskProcessor，主线程一次 `writeBuffer`。33×33 高度图 + 裙边无需 `mappedAtCreation` / 分帧上传。浏览器 `new URL()` typed array 往返已测。
 - [x] M3：裙边与填充网格（2026-09-13）：与高度图共用 `HeightmapTessellator` + Reverse-Z `greater` 管线；填充为常数高 9×9 + 裙边（非 Cesium 邻边缝合）。未做山区接缝截图闭环。
-- [x] M3：Geographic↔Mercator 重投影（2026-09-13）：`reproject.wgsl` compute 写入临时 `rgba8unorm` 2d-array 再 `copyTextureToTexture` 进图集；失败回退 CPU `OffscreenCanvas`。hello-terrain 默认 Geographic 地形 + OSM。
+- [x] M3：Geographic↔Mercator 重投影（2026-09-13）：`reproject.wgsl` compute 写入临时 `rgba8unorm` 2d-array 再 `copyTextureToTexture` 进图集；失败回退 CPU `OffscreenCanvas`。hello-terrain 默认 Geographic 地形 + OSM；`?terrain=mars3d` 接中国 quantized-mesh。

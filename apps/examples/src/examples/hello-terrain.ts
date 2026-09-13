@@ -1,9 +1,10 @@
 /**
- * Hello Terrain：自定义高度图山体 + Grid / OSM；可选 ion 世界地形。
+ * Hello Terrain：自定义高度图山体 + Grid / OSM；可选 ion 世界地形或 mars3d 中国地形。
  */
 import {
   Cartesian3,
   CesiumMath,
+  CesiumTerrainProvider,
   createWorldTerrainAsync,
   CustomHeightmapTerrainProvider,
   GeographicTilingScheme,
@@ -11,6 +12,7 @@ import {
   TaskProcessor,
   setTerrainTaskProcessors,
   type TerrainProvider,
+  type TilingScheme,
 } from "@webgpu-cesium/core"
 import { Globe, GridImageryProvider } from "@webgpu-cesium/scene"
 import { CesiumViewer } from "@webgpu-cesium/widgets"
@@ -19,6 +21,8 @@ import type { ExampleCleanup } from "./index"
 const PEAK_LON = 104
 const PEAK_LAT = 35
 const HEIGHTMAP_SIZE = 33
+const MARS3D_TERRAIN_URL = "http://data.mars3d.cn/terrain"
+const MARS3D_CREDIT = "Mars3D 中国地形 12.5m"
 
 function mountainHeight(longitude: number, latitude: number): number {
   const dlon = longitude - CesiumMath.toRadians(PEAK_LON)
@@ -55,21 +59,50 @@ function tryEnableTerrainWorkers(): void {
   }
 }
 
+/**
+ * `?terrain=mars3d` 或任意 http(s) 地形根 URL。
+ *
+ * @param value 查询参数
+ */
+function resolveTerrainUrl(value: string | null): string | undefined {
+  if (value === null || value.length === 0) {
+    return undefined
+  }
+  if (value === "mars3d") {
+    return MARS3D_TERRAIN_URL
+  }
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value
+  }
+  return undefined
+}
+
 export async function run(canvas: HTMLCanvasElement): Promise<ExampleCleanup> {
   tryEnableTerrainWorkers()
-  const query = new URLSearchParams(window.location.hash.split("?")[1] ?? "")
+  const hash = window.location.hash
+  const query = new URLSearchParams(hash.split("?")[1] ?? "")
   const useGrid = query.get("imagery") === "grid"
   const ionToken = query.get("ion") ?? query.get("token") ?? Ion.defaultAccessToken
-  const tilingScheme = new GeographicTilingScheme()
+  const remoteTerrainUrl =
+    resolveTerrainUrl(query.get("terrain")) ??
+    (hash.includes("hello-terrain-china") ? MARS3D_TERRAIN_URL : undefined)
+  let tilingScheme: TilingScheme = new GeographicTilingScheme()
   let terrainProvider: TerrainProvider = createMountainProvider(tilingScheme)
-  if (ionToken.length > 0) {
+  let remoteTerrain = false
+  if (remoteTerrainUrl !== undefined) {
+    terrainProvider = await CesiumTerrainProvider.fromUrl(remoteTerrainUrl, {
+      ...(remoteTerrainUrl === MARS3D_TERRAIN_URL ? { credit: MARS3D_CREDIT } : {}),
+    })
+    tilingScheme = terrainProvider.tilingScheme
+    remoteTerrain = true
+  } else if (ionToken.length > 0) {
     Ion.defaultAccessToken = ionToken
     terrainProvider = await createWorldTerrainAsync().catch(() =>
       createMountainProvider(tilingScheme),
     )
   }
   const globe = new Globe({ terrainProvider })
-  globe.verticalExaggeration = 4
+  globe.verticalExaggeration = remoteTerrain ? 3 : 4
   const host = canvas.parentElement ?? document.body
   const viewer = await CesiumViewer.create({
     container: host,
@@ -82,13 +115,36 @@ export async function run(canvas: HTMLCanvasElement): Promise<ExampleCleanup> {
   }
   viewer.scene.screenSpaceCameraController.enableCollisionDetection = true
   const applyView = (name: string): void => {
-    if (name !== "mountain" && name !== "slope" && name !== "space") {
-      return
-    }
     if (name === "space") {
       viewer.scene.camera.setView({
-        destination: Cartesian3.fromDegrees(PEAK_LON, PEAK_LAT, 1.8e7),
+        destination: Cartesian3.fromDegrees(
+          remoteTerrain ? 104 : PEAK_LON,
+          remoteTerrain ? 33 : PEAK_LAT,
+          remoteTerrain ? 1.2e7 : 1.8e7,
+        ),
         orientation: { heading: 0, pitch: -CesiumMath.PI_OVER_TWO, roll: 0 },
+      })
+      return
+    }
+    if (name === "emei") {
+      viewer.scene.camera.setView({
+        destination: Cartesian3.fromDegrees(103.45, 29.2, 1.1e5),
+        orientation: {
+          heading: CesiumMath.toRadians(340),
+          pitch: CesiumMath.toRadians(-20),
+          roll: 0,
+        },
+      })
+      return
+    }
+    if (name === "siguniang" || (remoteTerrain && name === "slope")) {
+      viewer.scene.camera.setView({
+        destination: Cartesian3.fromDegrees(102.88, 30.85, 4.8e4),
+        orientation: {
+          heading: CesiumMath.toRadians(8),
+          pitch: CesiumMath.toRadians(-20),
+          roll: 0,
+        },
       })
       return
     }
@@ -103,12 +159,15 @@ export async function run(canvas: HTMLCanvasElement): Promise<ExampleCleanup> {
       })
       return
     }
+    if (name !== "mountain") {
+      return
+    }
     viewer.scene.camera.setView({
       destination: Cartesian3.fromDegrees(PEAK_LON, PEAK_LAT - 1.2, 1.6e5),
       orientation: { heading: 0, pitch: CesiumMath.toRadians(-28), roll: 0 },
     })
   }
-  applyView("slope")
+  applyView(remoteTerrain ? "siguniang" : "slope")
   window.helloTerrainSetView = applyView
 
   let sawImagery = false
@@ -143,9 +202,7 @@ export async function run(canvas: HTMLCanvasElement): Promise<ExampleCleanup> {
  *
  * @param tilingScheme Geographic
  */
-function createMountainProvider(
-  tilingScheme: GeographicTilingScheme,
-): CustomHeightmapTerrainProvider {
+function createMountainProvider(tilingScheme: TilingScheme): CustomHeightmapTerrainProvider {
   return new CustomHeightmapTerrainProvider({
     width: HEIGHTMAP_SIZE,
     height: HEIGHTMAP_SIZE,

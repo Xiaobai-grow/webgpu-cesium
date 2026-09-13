@@ -3,11 +3,13 @@
  * 示例视图：右侧 canvas。按路由参数加载示例模块、调用 `run(canvas)`，切换或卸载时执行清理函数。
  */
 import { onBeforeUnmount, onMounted, reactive, ref, toRefs, watch } from "vue"
+import { useRoute } from "vue-router"
 import { GpuDevice, type GpuProbeResult } from "@webgpu-cesium/rhi"
 import ErrorPanel from "../components/ErrorPanel.vue"
 import { findExample, type ExampleCleanup } from "../examples"
 
 const props = defineProps<{ id: string }>()
+const route = useRoute()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
@@ -91,8 +93,8 @@ onMounted(() => {
 })
 
 watch(
-  () => props.id,
-  (id) => {
+  () => [props.id, route.fullPath] as const,
+  ([id]) => {
     void start(id)
   },
   { flush: "post" },

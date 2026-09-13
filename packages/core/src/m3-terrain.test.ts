@@ -294,6 +294,62 @@ describe("CesiumTerrainProvider.fromUrl", () => {
     })
     expect(mesh.vertexCountWithoutSkirts).toBe(4)
   })
+
+  it("解析 mars3d 形态 layer.json 并露出 attribution", async () => {
+    const tile = encodeQuantizedMesh({
+      ...cesiumQuad,
+      center: Cartesian3.fromDegrees(103, 31, 3000),
+      boundingSphere: new BoundingSphere(Cartesian3.fromDegrees(103, 31, 3000), 1e5),
+      horizonOcclusionPoint: new Cartesian3(1, 0, 0),
+    })
+    Resource.fetchImpl = (input) => {
+      const url = String(input)
+      if (url.includes("layer.json")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: { get: () => "application/json" },
+          arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+          text: () => Promise.resolve(""),
+          json: () =>
+            Promise.resolve({
+              name: "Mars3D中国地形12.5米",
+              attribution: "http://mars3d.cn",
+              minzoom: 0,
+              maxzoom: 15,
+              bounds: [-180, -90, 180, 90],
+              projection: "EPSG:4326",
+              scheme: "tms",
+              version: "1.0.0",
+              tilejson: "1.0",
+              format: "quantized-mesh-1.0",
+              tiles: ["{z}/{x}/{y}.terrain"],
+              extensions: ["octvertexnormals"],
+              available: [[{ startX: 0, startY: 0, endX: 1, endY: 0 }]],
+            }),
+          blob: () => Promise.resolve({}),
+        })
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        headers: { get: () => "application/octet-stream" },
+        arrayBuffer: () => Promise.resolve(tile.slice(0)),
+        text: () => Promise.resolve(""),
+        json: () => Promise.resolve({}),
+        blob: () => Promise.resolve({}),
+      })
+    }
+    const provider = await CesiumTerrainProvider.fromUrl("http://example.test/mars3d/")
+    expect(provider.tilingScheme).toBeInstanceOf(GeographicTilingScheme)
+    expect(provider.credit?.text).toContain("mars3d.cn")
+    expect(provider.hasVertexNormals).toBe(true)
+    expect(provider.getTileDataAvailable(0, 0, 0)).toBe(true)
+    const data = await provider.requestTileGeometry(0, 0, 0)
+    expect(data).toBeInstanceOf(QuantizedMeshTerrainData)
+  })
 })
 
 describe("IonResource", () => {

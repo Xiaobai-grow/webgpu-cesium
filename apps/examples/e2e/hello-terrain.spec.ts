@@ -25,6 +25,9 @@ test.describe("hello-terrain", () => {
     await expect(link).toBeVisible()
     await expect(link).toHaveClass(/example-list__item--active/)
     await expect(page.locator('[data-testid="example-canvas"]')).toBeVisible()
+    const china = page.locator('[data-example-id="hello-terrain-china"]')
+    await expect(china).toBeVisible()
+    await expect(china).toHaveAttribute("href", /terrain=mars3d/)
   })
 
   test("Grid 高度图地球就绪且非错误面板", async ({ page }) => {
