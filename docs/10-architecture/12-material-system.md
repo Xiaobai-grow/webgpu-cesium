@@ -204,7 +204,7 @@ flowchart LR
 
 ## 待验证
 
-- [ ] M4：`Material` 基类 + `MeshStandardMaterial` + `Texture` 落地后，反射生成的 group 2 布局与 uniform 重写策略（整块 vs 脏字段）的成本。
+- [x] M4：材质 group 2 手写 80 字节整块重写（2026-09-13），**不上 `wgsl_reflect`**。`onBeforeCompose` 七个 `HOOK_*` 接口点已留。每网格每帧 `writeBuffer` 80 + 80 字节，20 个材质球可忽略。
 - [ ] M5：glTF Sample Assets 全量映射到 `MeshPhysicalMaterial` 的视觉对比（与 three.js WebGPURenderer 截图对照）。
 - [ ] M5：默认纹理 + defines 跳过采样 vs 纯 defines 的 pipeline 数与带宽对比。
 - [ ] M9：`LineBasicMaterial` 屏幕空间挤出在 Reverse-Z 与 RTE 下的接缝与抗锯齿；`SpriteMaterial` 对齐 Billboard 全部选项后的性能。

@@ -68,3 +68,7 @@
 ## M3
 
 M3 不在本表。范围、验收与自列清单见 [01-milestones.md](01-milestones.md) 的 M3 节、[02-cesium-module-inventory.md](02-cesium-module-inventory.md) 地形行，以及 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
+
+## M4
+
+M4 不在本表。范围、验收与自列清单见 [01-milestones.md](01-milestones.md) 的 M4 节与 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。

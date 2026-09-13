@@ -2,6 +2,19 @@
 
 按日期倒序。标签：`[对齐]` `[决策]` `[变更]` `[推翻]` `[完成]` `[阻塞]` `[风险]`。
 
+## 2026-09-13（第七轮：M4）
+
+- [完成] M4 落地于分支 `feat/m4-lighting-atmosphere`（未合并 `main`）：Render Graph 别名与 `toJson`/`toMermaid`、G-buffer / 延迟 PBR、Hillaire 四 LUT、日月星、`EnvironmentState`、ACES/Reinhard、`Material`/`Texture`/`Mesh*`、`atmosphere-earth` 与 `material-spheres`。M3（含 mars3d）已在此前合并 `main`（PR #4）。
+- [完成] 验证：`pnpm build` / `lint` / `typecheck` 通过；`pnpm test` 38 文件 209 用例。本机 Chrome `navigator.gpu` 可用。hello-triangle / hello-globe / hello-terrain / atmosphere-earth（正午可见彩色 Grid 地球 + 日盘 + 星；日落/夜晚近景 Grid 偏暗仍可见）/ material-spheres（铜球金属-粗糙度网格 + 清漆行）均非黑屏。
+- [决策] 不上 `wgsl_reflect`：FrameUniforms 464 字节与材质 group 2 80 字节继续手写偏移。
+- [决策] 地形仍 5-float stride，G-buffer 法线用大地水准法线。绑定仍 group 0/1/2；Mesh 为 group 0 / 占位 group 1 / 2 材质 / 3 对象。
+- [决策] IBL 32²×6；多散射 16 方向；星表约 30 + 程序星；月面程序圆盘。`GpuTimer` 默认不接入帧图。
+- [决策] 延迟空像素判定：Reverse-Z 下只有 `depth <= 0` 才是天空（曾误用 `1e-5` 把远景地球当天空）。
+- [变更] `light.intensity` 乘太阳辐照，不再乘曝光。IBL / 填充系数下调，避免材质球过曝。
+- [变更] Mesh 局部 Y-up 经 ENU 转到 ECEF；空 bind group 改为 16 字节占位 uniform。`skyAtmosphere.show === false` 仍跑 LUT compute（IBL），只跳过天空 pass。
+- [风险] 未与 Cesium `SkyAtmosphere` 对比截图；未实测地表飞到 400 km 能量连续；未对月相与天文年历。贴地 `depthBias`、成千瓦片 RTE 成本仍在。
+- [风险] 官方 OSM 使用策略不变；演示 / e2e 继续优先 Grid；无内置 ion token。
+
 ## 2026-09-13（M3 追加：mars3d 中国地形）
 
 - [完成] 探测 `http://data.mars3d.cn/terrain`：`layer.json` 为 quantized-mesh-1.0、EPSG:4326、TMS、`{z}/{x}/{y}.terrain`、`octvertexnormals`、maxzoom 15；名称「Mars3D中国地形12.5米」，attribution `http://mars3d.cn`。0–8 级 `available` 近似全球（含负 `startX`），9–15 级约 67°E–136°E、11°N–57°N（中国及周边）。
