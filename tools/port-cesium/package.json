@@ -1,0 +1,16 @@
+{
+  "name": "@webgpu-cesium/port-cesium",
+  "version": "0.0.0",
+  "private": true,
+  "description": "从 d:\\code\\cesium 拷贝指定 Core 文件、改扩展名、转换 import/export 并生成 TODO 列表",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": {
+    "port-cesium": "./src/cli.mjs"
+  },
+  "scripts": {
+    "port": "node src/cli.mjs",
+    "build": "node --check src/cli.mjs && node --check src/manifest.mjs && node --check src/convert.mjs",
+    "typecheck": "node --check src/cli.mjs"
+  }
+}

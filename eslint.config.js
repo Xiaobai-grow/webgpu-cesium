@@ -123,7 +123,7 @@ export default defineConfig([
         { selector: "default", format: ["camelCase"], leadingUnderscore: "allow" },
         {
           selector: "variable",
-          format: ["camelCase", "UPPER_CASE"],
+          format: ["camelCase", "PascalCase", "UPPER_CASE"],
           leadingUnderscore: "allow",
         },
         { selector: "function", format: ["camelCase", "PascalCase"] },
@@ -151,6 +151,7 @@ export default defineConfig([
       "*.mts",
       "packages/*/tsdown.config.ts",
       "tools/*/tsdown.config.ts",
+      "tools/*/src/**/*.{ts,mjs,js}",
       "tools/wgsl-plugin/src/**/*.ts",
       "apps/*/vite.config.ts",
       "apps/*/playwright.config.ts",
