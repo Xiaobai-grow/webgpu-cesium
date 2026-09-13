@@ -1,0 +1,19 @@
+# 构建产物与依赖
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+**/__screenshots__/
+**/*.snap
+
+# 锁文件与自动生成
+pnpm-lock.yaml
+CHANGELOG.md
+.changeset/*.md
+
+# WGSL 由 wgsl-analyzer 格式化（4 空格），Prettier 不解析
+*.wgsl
+
+# 设计文档：中文表格经 Prettier 重排会因宽度计算偏差而失真，人工维护
+docs/

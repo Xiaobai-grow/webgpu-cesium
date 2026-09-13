@@ -1,0 +1,28 @@
+{
+  "name": "@webgpu-cesium/scene",
+  "version": "0.0.0",
+  "description": "Scene、FrameState、Camera、Globe、图元集合、拾取（M2 起实现）",
+  "type": "module",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@webgpu-cesium/core": "workspace:*",
+    "@webgpu-cesium/renderer": "workspace:*",
+    "@webgpu-cesium/rhi": "workspace:*",
+    "@webgpu-cesium/shaders": "workspace:*"
+  }
+}

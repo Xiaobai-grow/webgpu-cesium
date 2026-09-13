@@ -1,0 +1,42 @@
+{
+  "name": "@webgpu-cesium/wgsl-plugin",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vite / Rolldown 共用插件：把 .wgsl 文件作为字符串导入，dev 下修改触发 HMR",
+  "type": "module",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "client.d.ts"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./client.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "rolldown": ">=1.0.0",
+    "vite": ">=6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "rolldown": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "rolldown": "^1.2.8",
+    "vite": "^8.3.0"
+  }
+}

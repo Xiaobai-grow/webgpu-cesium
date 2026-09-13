@@ -1,0 +1,8 @@
+# 统一 LF，避免 Windows 检出 CRLF 影响 WGSL 哈希与快照
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ktx2 binary
+*.glb binary
+*.wasm binary
