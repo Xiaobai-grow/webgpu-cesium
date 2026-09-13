@@ -4,10 +4,24 @@
  */
 import constantsWgsl from "./constants.wgsl"
 import frameWgsl from "./frame.wgsl"
+import transformsWgsl from "./transforms.wgsl"
+import terrainWgsl from "../globe/terrain.wgsl"
+import reprojectWgsl from "../globe/reproject.wgsl"
 
 export const BUILTIN_MODULES: Readonly<Record<string, string>> = Object.freeze({
   "builtin/constants.wgsl": constantsWgsl,
   "builtin/frame.wgsl": frameWgsl,
+  "builtin/transforms.wgsl": transformsWgsl,
+})
+
+export const GLOBE_MODULES: Readonly<Record<string, string>> = Object.freeze({
+  "globe/terrain.wgsl": terrainWgsl,
+  "globe/reproject.wgsl": reprojectWgsl,
+})
+
+export const SHADER_MODULES: Readonly<Record<string, string>> = Object.freeze({
+  ...BUILTIN_MODULES,
+  ...GLOBE_MODULES,
 })
 
 /** FrameUniforms 结构体字节大小（与 frame.wgsl 注释中的布局一致） */

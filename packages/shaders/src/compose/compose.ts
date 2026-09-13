@@ -11,7 +11,8 @@
  *   3. 输出：拼接各模块的活动行（统一空白、去空行），同时记录每行的原始位置；
  *   4. 计算哈希。
  *
- * 后续（M2+）再加：`#import ... as ns`、`#define_import_path`、`@binding_auto`、反射。
+ * M2：`override` 作为普通 WGSL 原样输出（非 `#` 指令）；组合后检查顶层 `fn` / `struct` / `override` 重名。
+ * 后续再加：`#import ... as ns`、`#define_import_path`、`@binding_auto`、反射。
  */
 import { evaluateCondition } from "./condition"
 import { hashString } from "./hash"
@@ -241,6 +242,14 @@ export function composeShader(options: ComposeOptions): ComposeResult {
     }
   }
   const code = codeLines.join("\n")
+  const duplicate = findDuplicateTopLevelSymbols(codeLines, sourceMap)
+  if (duplicate) {
+    throw new ShaderComposeError(
+      duplicate.file,
+      duplicate.line,
+      `顶层符号 "${duplicate.name}" 重复定义（先见于 ${duplicate.firstFile}:${String(duplicate.firstLine)}）`,
+    )
+  }
 
   return {
     code,
@@ -251,6 +260,43 @@ export function composeShader(options: ComposeOptions): ComposeResult {
       return sourceMap[outputLine - 1]
     },
   }
+}
+
+const TOP_LEVEL_SYMBOL_RE = /^(?:@[A-Za-z]+ )*(?:fn|struct|override|const|alias)\s+(\w+)/
+
+/**
+ * 扫描组合后的顶层符号，发现重名则返回后一次出现的位置。
+ *
+ * @param lines 规范化输出行
+ * @param sourceMap 行号映射
+ */
+export function findDuplicateTopLevelSymbols(
+  lines: readonly string[],
+  sourceMap: readonly SourceLocation[],
+): { name: string; file: string; line: number; firstFile: string; firstLine: number } | undefined {
+  const seen = new Map<string, SourceLocation>()
+  for (let i = 0; i < lines.length; i++) {
+    const match = TOP_LEVEL_SYMBOL_RE.exec(lines[i]!)
+    if (!match) {
+      continue
+    }
+    const name = match[1]!
+    const location = sourceMap[i]
+    const first = seen.get(name)
+    if (first && location) {
+      return {
+        name,
+        file: location.file,
+        line: location.line,
+        firstFile: first.file,
+        firstLine: first.line,
+      }
+    }
+    if (location) {
+      seen.set(name, location)
+    }
+  }
+  return undefined
 }
 
 /**

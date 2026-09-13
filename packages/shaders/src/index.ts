@@ -5,4 +5,9 @@
  * 反射（reflect/*）在 M2 引入。
  */
 export * from "./compose"
-export { BUILTIN_MODULES, FRAME_UNIFORMS_BYTE_LENGTH } from "./builtin"
+export {
+  BUILTIN_MODULES,
+  FRAME_UNIFORMS_BYTE_LENGTH,
+  GLOBE_MODULES,
+  SHADER_MODULES,
+} from "./builtin"

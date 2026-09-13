@@ -1,4 +1,9 @@
-export { composeShader, formatCompilationMessages, stripComments } from "./compose"
+export {
+  composeShader,
+  findDuplicateTopLevelSymbols,
+  formatCompilationMessages,
+  stripComments,
+} from "./compose"
 export { evaluateCondition } from "./condition"
 export { hashString } from "./hash"
 export { ShaderComposeError } from "./ShaderComposeError"
