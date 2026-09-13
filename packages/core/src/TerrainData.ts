@@ -12,6 +12,8 @@ import type { Ellipsoid } from "./Ellipsoid"
 import type { Rectangle } from "./Rectangle"
 import type { TerrainMesh } from "./TerrainMesh"
 
+import type { TilingScheme } from "./TilingScheme"
+
 /** createMesh 选项 */
 export interface TerrainDataCreateMeshOptions {
   tilingScheme: {
@@ -22,12 +24,18 @@ export interface TerrainDataCreateMeshOptions {
   y: number
   level: number
   exaggeration?: number
+  exaggerationRelativeHeight?: number
+  skirtHeight?: number
+  throttle?: boolean
 }
 
 /**
  * 地形数据基类。对标 Cesium `Core/TerrainData.js`。
  */
 export abstract class TerrainData {
+  /** Worker 异步网格创建的并发上限 */
+  static maximumAsynchronousTasks = 5
+
   /** 子瓦片是否都可用（椭球地形恒为 true） */
   abstract childTileMask: number
 
@@ -42,6 +50,42 @@ export abstract class TerrainData {
   abstract createMesh(options: TerrainDataCreateMeshOptions): Promise<TerrainMesh>
 
   /**
+   * 指定经纬处的地形高（米）。无法插值时返回 undefined（需先 createMesh）。
+   *
+   * @param rectangle 本瓦片矩形
+   * @param longitude 经度
+   * @param latitude 纬度
+   */
+  abstract interpolateHeight(
+    rectangle: Rectangle,
+    longitude: number,
+    latitude: number,
+  ): number | undefined
+
+  /**
+   * 上采样给直接子瓦片。网格未创建时返回 undefined。
+   *
+   * @param tilingScheme 方案
+   * @param thisX 本列
+   * @param thisY 本行
+   * @param thisLevel 本 LOD
+   * @param descendantX 子列
+   * @param descendantY 子行
+   * @param descendantLevel 子 LOD
+   */
+  upsample(
+    _tilingScheme: TilingScheme,
+    _thisX: number,
+    _thisY: number,
+    _thisLevel: number,
+    _descendantX: number,
+    _descendantY: number,
+    _descendantLevel: number,
+  ): Promise<TerrainData> | undefined {
+    return undefined
+  }
+
+  /**
    * 指定子瓦片是否可用。
    *
    * @param thisX 本瓦片 x
@@ -51,6 +95,6 @@ export abstract class TerrainData {
    */
   abstract isChildAvailable(thisX: number, thisY: number, childX: number, childY: number): boolean
 
-  /** 是否可上采样（M2 椭球路径为 false） */
+  /** 是否由上采样得到 */
   abstract wasCreatedByUpsampling(): boolean
 }

@@ -73,6 +73,26 @@ export const IndexDatatype = {
     return new Uint16Array(indicesLengthOrArray as number)
   },
 
+  /**
+   * 从 ArrayBuffer 视图创建索引数组。
+   *
+   * @param numberOfVertices 顶点数
+   * @param sourceArray 源缓冲
+   * @param byteOffset 字节偏移
+   * @param length 元素个数
+   */
+  createTypedArrayFromArrayBuffer(
+    numberOfVertices: number,
+    sourceArray: ArrayBuffer,
+    byteOffset: number,
+    length: number,
+  ): Uint16Array | Uint32Array {
+    if (numberOfVertices >= CesiumMath.SIXTY_FOUR_KILOBYTES) {
+      return new Uint32Array(sourceArray, byteOffset, length)
+    }
+    return new Uint16Array(sourceArray, byteOffset, length)
+  },
+
   fromTypedArray(array: Uint8Array | Uint16Array | Uint32Array): number {
     if (array instanceof Uint8Array) {
       return IndexDatatype.UNSIGNED_BYTE

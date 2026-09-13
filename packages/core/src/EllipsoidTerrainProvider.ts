@@ -98,7 +98,7 @@ export class EllipsoidTerrainProvider extends TerrainProvider {
     return undefined
   }
 
-  loadTileDataAvailability(_x: number, _y: number, _level: number): undefined {
+  loadTileDataAvailability(_x: number, _y: number, _level: number): Promise<void> | undefined {
     return undefined
   }
 }
