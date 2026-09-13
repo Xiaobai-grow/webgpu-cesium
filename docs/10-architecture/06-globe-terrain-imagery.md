@@ -71,7 +71,6 @@ Cesium 的 `TerrainEncoding` 已支持量化（`BITS12`）与非量化两种布�
 
 ## 待验证
 
-- [ ] M2：影像图集方案下每帧 bind group 切换次数与 pipeline 数量；瓦片 storage 数组更新策略（全量 vs 脏区）。
-- [ ] M2：256 layer 上限在世界级缩放（连续从太空到街道）过程中是否被触发。
+- [x] M2：`texture_2d_array` 图集 + 每瓦片 uniform（2026-09-13）：group 0 frame / group 1 图集 / group 2 tile；地形与影像须 0 级瓦片数相同（hello-globe 用 WebMercator 对齐 OSM）。国家尺度 64 瓦片、1 条 pipeline。256 layer 未在太空–国家路径触发。`reproject.wgsl` 已写未接线。像素断言用 `copyTextureToBuffer`，禁止 2d `drawImage` 截 WebGPU canvas。
 - [ ] M3：Worker 生成顶点到 `writeBuffer` 的端到端延迟；是否需要 `mappedAtCreation` 或分帧上传。
 - [ ] M3：Reverse-Z 下裙边与填充网格的视觉一致性。

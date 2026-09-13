@@ -127,8 +127,8 @@ flowchart LR
 
 ## 待验证
 
-- [x] M0（部分）：`PipelineCache` 键成本已粗测（2026-09-13，`rhi/src/caches/stableKey.test.ts`，Node 22 桌面）：典型 render pipeline 描述 → 稳定 JSON 键约 **6.7 µs / 次**，键长约 440 字符；GPU 对象（layout / module）用 `WeakMap` 分配递增 id 参与键，不做深遍历。结论：每帧对几百个 RenderItem 直接算键仍在 1–2 ms 量级，M2 起 RenderItem 应持有已解析的 `pipelineKey`（只在描述变化时重算），不要每帧重算。几百个 RenderItem 的排序与提交尚未测（M0 只有 1 个）→ 转入 M2 待验证。
-- [ ] M2：动态偏移 uniform 与 storage 实例数组两种对象数据传递方式的性能对比，选一种作为默认。
-- [ ] M2：几百个 RenderItem 的排序 + pipeline 键查找 + 提交是否低于 1 ms（从 M0 顺延）。
+- [x] M0（部分）：`PipelineCache` 键成本已粗测（2026-09-13，`rhi/src/caches/stableKey.test.ts`，Node 22 桌面）：典型 render pipeline 描述 → 稳定 JSON 键约 **6.7 µs / 次**，键长约 440 字符；GPU 对象（layout / module）用 `WeakMap` 分配递增 id 参与键，不做深遍历。结论：每帧对几百个 RenderItem 直接算键仍在 1–2 ms 量级，M2 起 RenderItem 应持有已解析的 `pipelineKey`（只在描述变化时重算），不要每帧重算。
+- [x] M2：`RenderItem.pipelineKey` 由 `GlobeSurfaceTileProvider` 在构造时解析并复用（2026-09-13）。对象数据为每瓦片 48 字节 uniform（非动态偏移 / 非 storage）。国家尺度约 64 个 RenderItem 时示例站 CPU ≈ 1.5 ms。几百项 < 1 ms 的专项剖析未做，顺延低空密集瓦片时再测。
+- [ ] M3：动态偏移 uniform 与 storage 实例数组两种对象数据传递方式的性能对比，选一种作为默认。
 - [ ] M3：瞬态资源别名在分辨率变化（窗口缩放、像素比）时的重建策略。
 - [ ] M4：timestamp-query 在主流 GPU 上的精度与开销，是否默认开启。

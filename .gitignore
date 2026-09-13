@@ -9,6 +9,7 @@ coverage/
 # 测试产物
 test-results/
 playwright-report/
+.vitest/
 __screenshots__/**/*-actual.png
 __screenshots__/**/*-diff.png
 

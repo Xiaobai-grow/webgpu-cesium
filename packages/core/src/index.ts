@@ -155,6 +155,36 @@ export { parseResponseHeaders } from "./parseResponseHeaders"
 export { TaskProcessor } from "./TaskProcessor"
 export { createTaskProcessorWorker } from "./createTaskProcessorWorker"
 export { ScreenSpaceEventHandler } from "./ScreenSpaceEventHandler"
+export { Credit } from "./Credit"
+export {
+  EasingFunction,
+  type EasingFunctionCallback,
+  type EasingFunctionName,
+} from "./EasingFunction"
+export { TileProviderError, type TileProviderLike } from "./TileProviderError"
+export { TerrainQuantization, type TerrainQuantizationValue } from "./TerrainQuantization"
+export { HeightmapEncoding, type HeightmapEncodingValue } from "./HeightmapEncoding"
+export {
+  TerrainEncoding,
+  TERRAIN_VERTEX_FLOATS,
+  TERRAIN_VERTEX_STRIDE_BYTES,
+} from "./TerrainEncoding"
+export { TerrainMesh } from "./TerrainMesh"
+export { TerrainData, type TerrainDataCreateMeshOptions } from "./TerrainData"
+export { HeightmapTessellator, type HeightmapTessellatorOptions } from "./HeightmapTessellator"
+export { HeightmapTerrainData, type HeightmapTerrainDataOptions } from "./HeightmapTerrainData"
+export { TerrainProvider } from "./TerrainProvider"
+export {
+  EllipsoidTerrainProvider,
+  ELLIPSOID_TERRAIN_HEIGHTMAP_WIDTH,
+  type EllipsoidTerrainProviderOptions,
+} from "./EllipsoidTerrainProvider"
+export {
+  createVerticesFromHeightmap,
+  serializeTerrainMesh,
+  type CreateVerticesFromHeightmapInput,
+  type CreateVerticesFromHeightmapOutput,
+} from "./createVerticesFromHeightmap"
 
 export { Heap } from "./Heap"
 export { Queue } from "./Queue"

@@ -19,3 +19,10 @@ export {
   FrameUniformsData,
   type FrameUniformsValues,
 } from "./FrameUniforms"
+export {
+  TEXTURE_COPY_BYTES_PER_ROW_ALIGNMENT,
+  alignedBytesPerRow,
+  copyTextureToBuffer,
+  hasNonBlackPixels,
+  type CopyTextureToBufferOptions,
+} from "./copyTextureToBuffer"

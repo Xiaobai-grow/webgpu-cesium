@@ -86,9 +86,15 @@ importers:
       '@webgpu-cesium/rhi':
         specifier: workspace:*
         version: link:../../packages/rhi
+      '@webgpu-cesium/scene':
+        specifier: workspace:*
+        version: link:../../packages/scene
       '@webgpu-cesium/shaders':
         specifier: workspace:*
         version: link:../../packages/shaders
+      '@webgpu-cesium/widgets':
+        specifier: workspace:*
+        version: link:../../packages/widgets
       vue:
         specifier: ^3.5.42
         version: 3.5.42(typescript@6.0.3)
@@ -192,6 +198,8 @@ importers:
       vue:
         specifier: ^3.5.0
         version: 3.5.42(typescript@6.0.3)
+
+  tools/port-cesium: {}
 
   tools/wgsl-plugin:
     devDependencies:

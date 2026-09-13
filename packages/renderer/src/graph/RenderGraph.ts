@@ -483,11 +483,14 @@ export function drawRenderItems(
   items: readonly RenderItem[],
 ): void {
   const cache = device.pipelines
-  const resolved = items.map((item) => ({
-    item,
-    pipeline: cache.getRenderPipeline(item.pipeline),
-    pipelineKey: cache.keyOf(item.pipeline),
-  }))
+  const resolved = items.map((item) => {
+    const pipelineKey = item.pipelineKey ?? cache.keyOf(item.pipeline)
+    return {
+      item,
+      pipeline: cache.getRenderPipeline(item.pipeline),
+      pipelineKey,
+    }
+  })
   resolved.sort((a, b) => {
     if (a.item.sortKey !== b.item.sortKey) {
       return a.item.sortKey - b.item.sortKey

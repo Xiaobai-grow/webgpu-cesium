@@ -50,4 +50,26 @@ describe("FrameUniformsData", () => {
     // 相机位置仍为 0
     expect(data.readF32(FRAME_UNIFORMS_LAYOUT.cameraPositionHigh)).toBe(0)
   })
+
+  it("update 写入 RTE 高低位与视图矩阵", () => {
+    const data = new FrameUniformsData()
+    const view = new Float32Array(16)
+    view[0] = 1
+    view[5] = 1
+    view[10] = 1
+    view[15] = 1
+    data.update({
+      time: 0,
+      deltaTime: 0,
+      frameNumber: 1,
+      viewport: [0, 0, 1, 1],
+      viewMatrix: view,
+      cameraPositionHigh: [65536, 0, 0],
+      cameraPositionLow: [12.5, -3, 7],
+    })
+    expect(data.readF32(FRAME_UNIFORMS_LAYOUT.cameraPositionHigh)).toBe(65536)
+    expect(data.readF32(FRAME_UNIFORMS_LAYOUT.cameraPositionLow)).toBeCloseTo(12.5)
+    expect(data.readF32(FRAME_UNIFORMS_LAYOUT.cameraPositionLow + 4)).toBeCloseTo(-3)
+    expect(data.readF32(FRAME_UNIFORMS_LAYOUT.viewMatrix + 15 * 4)).toBe(1)
+  })
 })

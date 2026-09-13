@@ -116,6 +116,148 @@ return out;
 }"
 `;
 
+exports[`地形着色器组合 > reproject.wgsl 恒等与 Mercator 分支 1`] = `
+"struct ReprojectUniforms {
+destWest: f32,
+destSouth: f32,
+destEast: f32,
+destNorth: f32,
+srcWest: f32,
+srcSouth: f32,
+srcEast: f32,
+srcNorth: f32,
+layerIndex: u32,
+_pad0: u32,
+_pad1: u32,
+_pad2: u32,
+}
+@group(0) @binding(0) var<uniform> reproject: ReprojectUniforms;
+@group(0) @binding(1) var sourceTexture: texture_2d<f32>;
+@group(0) @binding(2) var sourceSampler: sampler;
+@group(0) @binding(3) var destTexture: texture_storage_2d_array<rgba8unorm, write>;
+override WORKGROUP_SIZE: u32 = 8;
+fn geographicToMercatorV(latitude: f32) -> f32 {
+let s = clamp(latitude, -1.4844222297453324, 1.4844222297453324);
+return 0.5 - log(tan(0.7853981633974483 + s * 0.5)) / 6.283185307179586;
+}
+@compute @workgroup_size(8, 8, 1)
+fn csReproject(@builtin(global_invocation_id) id: vec3<u32>) {
+let dims = textureDimensions(destTexture);
+if (id.x >= dims.x || id.y >= dims.y) {
+return;
+}
+let uv = (vec2<f32>(id.xy) + vec2<f32>(0.5)) / vec2<f32>(dims);
+var sourceUv = uv;
+let lon = mix(reproject.destWest, reproject.destEast, uv.x);
+let lat = mix(reproject.destNorth, reproject.destSouth, uv.y);
+let mercU = (lon - reproject.srcWest) / (reproject.srcEast - reproject.srcWest);
+let mercV = (geographicToMercatorV(lat) - geographicToMercatorV(reproject.srcNorth))
+/ (geographicToMercatorV(reproject.srcSouth) - geographicToMercatorV(reproject.srcNorth));
+sourceUv = vec2<f32>(mercU, mercV);
+var color = vec4<f32>(0.0);
+if (sourceUv.x >= 0.0 && sourceUv.x <= 1.0 && sourceUv.y >= 0.0 && sourceUv.y <= 1.0) {
+color = textureSampleLevel(sourceTexture, sourceSampler, sourceUv, 0.0);
+}
+textureStore(destTexture, vec2<i32>(id.xy), i32(reproject.layerIndex), color);
+}"
+`;
+
+exports[`地形着色器组合 > terrain.wgsl 组合含 RTE 与 Lambert 1`] = `
+"const PI: f32 = 3.14159265358979323846;
+const TWO_PI: f32 = 6.28318530717958647692;
+const HALF_PI: f32 = 1.57079632679489661923;
+const QUARTER_PI: f32 = 0.78539816339744830962;
+const ONE_OVER_PI: f32 = 0.31830988618379067154;
+const ONE_OVER_TWO_PI: f32 = 0.15915494309189533577;
+const RADIANS_PER_DEGREE: f32 = 0.01745329251994329577;
+const DEGREES_PER_RADIAN: f32 = 57.29577951308232087680;
+const EPSILON1: f32 = 0.1;
+const EPSILON2: f32 = 0.01;
+const EPSILON3: f32 = 0.001;
+const EPSILON4: f32 = 0.0001;
+const EPSILON5: f32 = 0.00001;
+const EPSILON6: f32 = 0.000001;
+const EPSILON7: f32 = 0.0000001;
+const WGS84_RADII: vec3<f32> = vec3<f32>(6378137.0, 6378137.0, 6356752.3142451793);
+const WGS84_ONE_OVER_RADII: vec3<f32> = vec3<f32>(
+1.567855942887398e-7,
+1.567855942887398e-7,
+1.573130351105623e-7,
+);
+const WGS84_ONE_OVER_RADII_SQUARED: vec3<f32> = vec3<f32>(
+2.458172257647332e-14,
+2.458172257647332e-14,
+2.474739135950327e-14,
+);
+const SOLAR_RADIUS: f32 = 695700000.0;
+const LUNAR_RADIUS: f32 = 1737400.0;
+struct FrameUniforms {
+viewMatrix: mat4x4<f32>,
+projectionMatrix: mat4x4<f32>,
+viewProjectionMatrix: mat4x4<f32>,
+inverseProjectionMatrix: mat4x4<f32>,
+cameraPositionHigh: vec3<f32>,
+time: f32,
+cameraPositionLow: vec3<f32>,
+deltaTime: f32,
+viewport: vec4<f32>,
+frameNumber: u32,
+_padding0: u32,
+_padding1: u32,
+_padding2: u32,
+}
+@group(0) @binding(0) var<uniform> frame: FrameUniforms;
+fn rteToEye(positionHigh: vec3<f32>, positionLow: vec3<f32>) -> vec3<f32> {
+let highDiff = positionHigh - frame.cameraPositionHigh;
+let lowDiff = positionLow - frame.cameraPositionLow;
+return highDiff + lowDiff;
+}
+fn rteToClip(positionHigh: vec3<f32>, positionLow: vec3<f32>, localPosition: vec3<f32>) -> vec4<f32> {
+let eye = rteToEye(positionHigh, positionLow) + localPosition;
+return frame.projectionMatrix * frame.viewMatrix * vec4<f32>(eye, 1.0);
+}
+struct TileUniforms {
+centerHigh: vec3<f32>,
+layerIndex: u32,
+centerLow: vec3<f32>,
+_pad0: u32,
+baseColor: vec4<f32>,
+}
+@group(1) @binding(0) var imageryAtlas: texture_2d_array<f32>;
+@group(1) @binding(1) var imagerySampler: sampler;
+@group(2) @binding(0) var<uniform> tile: TileUniforms;
+struct TerrainVertexInput {
+@location(0) position: vec3<f32>,
+@location(1) texcoord: vec2<f32>,
+}
+struct TerrainVertexOutput {
+@builtin(position) position: vec4<f32>,
+@location(0) texcoord: vec2<f32>,
+@location(1) worldApprox: vec3<f32>,
+}
+@vertex
+fn vsTerrain(input: TerrainVertexInput) -> TerrainVertexOutput {
+var out: TerrainVertexOutput;
+out.position = rteToClip(tile.centerHigh, tile.centerLow, input.position);
+out.texcoord = input.texcoord;
+out.worldApprox = tile.centerHigh + tile.centerLow + input.position;
+return out;
+}
+@fragment
+fn fsTerrain(input: TerrainVertexOutput) -> @location(0) vec4<f32> {
+let normal = normalize(input.worldApprox * WGS84_ONE_OVER_RADII_SQUARED);
+let camera = frame.cameraPositionHigh + frame.cameraPositionLow;
+let lightDir = normalize(camera);
+let lambert = max(dot(normal, lightDir), 0.4);
+var albedo = tile.baseColor.rgb;
+if (tile.layerIndex != 0xffffffffu) {
+let sampled = textureSample(imageryAtlas, imagerySampler, input.texcoord, i32(tile.layerIndex));
+albedo = mix(albedo, sampled.rgb, sampled.a);
+}
+return vec4<f32>(albedo * lambert, 1.0);
+}"
+`;
+
 exports[`行号映射 > formatCompilationMessages 输出原始位置 1`] = `
 "error b.wgsl:3:12: unresolved value 'c'
 warning <composed>:42:1: out of range"

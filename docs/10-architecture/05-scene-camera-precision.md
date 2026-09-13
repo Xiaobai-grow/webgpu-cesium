@@ -81,7 +81,7 @@
 ## 待验证
 
 - [x] M1：PerspectiveFrustum Reverse-Z 投影矩阵数值（2026-09-13，`packages/core/src/bounds.test.ts`）：eye-space `z = -near` 映到 NDC z=1，`z = -far` 映到 0；`far = Infinity` 时远处趋近 0；`computeCullingVolume` 仍返回 6 平面。
-- [ ] M2：near 0.1 m / far 无穷远的 Reverse-Z 在 RTX / Apple M 系 / Intel 集显上的 z-fighting 表现（地形与贴地面）。
-- [ ] M2：相机相对模型矩阵每帧更新成千瓦片的 CPU 成本。
+- [x] M2：Camera 视图平移为 0 + RTE 高低位（2026-09-13，`Camera.test.ts` / `FrameUniforms.test.ts`）；深度 `depth32float` + `greater` + clear 0。高空默认必须天底（`-PI/2`），`-PI/4` 会看向太空导致 0 级瓦片被视锥剔除。未做 100 m 录屏抖动对比，也未在多 GPU 上比 `far=1e9` 与无穷远。
+- [ ] M3：near 0.1 m / far 无穷远的 Reverse-Z 在真地形与贴地面上的 z-fighting；成千瓦片 RTE uniform 更新成本。
 - [ ] M3：贴地几何的 `depthBias` 参数标定。
 - [ ] M5：`pickPosition` 读回延迟（一帧还是两帧），是否需要「预测式」同步 API。

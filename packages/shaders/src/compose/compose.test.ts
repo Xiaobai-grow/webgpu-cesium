@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { BUILTIN_MODULES } from "../builtin"
+import { BUILTIN_MODULES, GLOBE_MODULES, SHADER_MODULES } from "../builtin"
 import { composeShader, formatCompilationMessages, stripComments } from "./compose"
 import { evaluateCondition } from "./condition"
 import { hashString } from "./hash"
@@ -294,6 +294,70 @@ describe("内置模块", () => {
     expect(result.code).toContain("@group(0) @binding(0) var<uniform> frame: FrameUniforms;")
     expect(result.code).not.toContain("//")
     expect(result.code).toMatchSnapshot()
+  })
+})
+
+describe("override 透传与顶层重名", () => {
+  it("override 行原样进入输出", () => {
+    const result = composeShader({
+      entry: "ov.wgsl",
+      modules: {
+        "ov.wgsl": `override layerCount: u32 = 1;
+fn useOverride() -> u32 { return layerCount; }
+`,
+      },
+    })
+    expect(result.code).toContain("override layerCount: u32 = 1;")
+  })
+
+  it("顶层 fn 重名报错", () => {
+    expect(() =>
+      composeShader({
+        entry: "dup.wgsl",
+        modules: {
+          "dup.wgsl": `#import "other.wgsl"
+fn shared() {}
+`,
+          "other.wgsl": `fn shared() {}
+`,
+        },
+      }),
+    ).toThrowError(/顶层符号 "shared" 重复定义/)
+  })
+})
+
+describe("地形着色器组合", () => {
+  it("terrain.wgsl 组合含 RTE 与 Lambert", () => {
+    const result = composeShader({
+      entry: "globe/terrain.wgsl",
+      modules: SHADER_MODULES,
+    })
+    expect(result.modules).toEqual([
+      "builtin/constants.wgsl",
+      "builtin/frame.wgsl",
+      "builtin/transforms.wgsl",
+      "globe/terrain.wgsl",
+    ])
+    expect(result.code).toContain("fn rteToEye")
+    expect(result.code).toContain("fn vsTerrain")
+    expect(result.code).toContain("texture_2d_array")
+    expect(result.code).toMatchSnapshot()
+  })
+
+  it("reproject.wgsl 恒等与 Mercator 分支", () => {
+    const identity = composeShader({
+      entry: "globe/reproject.wgsl",
+      modules: GLOBE_MODULES,
+    })
+    expect(identity.code).toContain("override WORKGROUP_SIZE")
+    expect(identity.code).not.toContain("geographicToMercatorV")
+    const mercator = composeShader({
+      entry: "globe/reproject.wgsl",
+      modules: GLOBE_MODULES,
+      defines: { REPROJECT_MERCATOR: 1 },
+    })
+    expect(mercator.code).toContain("fn geographicToMercatorV")
+    expect(mercator.code).toMatchSnapshot()
   })
 })
 
