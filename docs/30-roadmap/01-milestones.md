@@ -38,7 +38,7 @@ M3 与 M4 可并行；M5 依赖 M4 的 RenderItem / 材质接口稳定；M7 / M8
 
 ## M1 core 数学、地理、时间移植
 
-- **状态**：完成（2026-09-13，分支 `feat/m1-core-math`，未合并 `main`）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
+- **状态**：完成（2026-09-13，已合并 `main`，PR #2）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
 - **目标**：`@webgpu-cesium/core` 覆盖 Cesium `Core` 中的数学 / 地理 / 时间 / 请求 / 事件模块，测试从 Cesium Specs 移植。
 - **范围**：见 [02-cesium-module-inventory.md](02-cesium-module-inventory.md) 的「M1」列：`Math`、`Cartesian2/3/4`、`Cartographic`、`Matrix2/3/4`、`Quaternion`、`Ellipsoid`、`EllipsoidGeodesic`、`EllipsoidRhumbLine`、`EllipsoidTangentPlane`、`Rectangle`、`BoundingSphere`、`OrientedBoundingBox`、`AxisAlignedBoundingBox`、`BoundingRectangle`、`Plane`、`Ray`、`IntersectionTests`、`Intersections2D`、`CullingVolume`、`PerspectiveFrustum` / `OrthographicFrustum` 系列（改 0..1 深度 + Reverse-Z）、`Transforms`、`HeadingPitchRoll`、`HeadingPitchRange`、`EncodedCartesian3`、`GeographicProjection`、`WebMercatorProjection`、`GeographicTilingScheme`、`WebMercatorTilingScheme`、`JulianDate`、`GregorianDate`、`LeapSecond`、`TimeInterval(Collection)`、`TimeStandard`、`TimeConstants`、`Iso8601`、`Clock`、`ClockRange`、`ClockStep`、`Simon1994PlanetaryPositions`、`Iau2006XysData`、`EarthOrientationParameters`、`Event`、`EventHelper`、`defined`、`Check`、`DeveloperError`、`RuntimeError`、`destroyObject`、`Resource`、`Request`、`RequestScheduler`、`RequestType`、`TaskProcessor`、`Credit`、`Color`、`Occluder`、`EllipsoidalOccluder`、`AttributeCompression`、`ComponentDatatype`、`IndexDatatype`、`PrimitiveType`、`Heap`、`DoublyLinkedList`、`Queue`、`AssociativeArray`、`ManagedArray`、`binarySearch`、`mergeSort`。
 - **不做**：几何生成（`*Geometry`，M9）、Provider（M2 / M3）。
@@ -47,6 +47,7 @@ M3 与 M4 可并行；M5 依赖 M4 的 RenderItem / 材质接口稳定；M7 / M8
 
 ## M2 球出现
 
+- **状态**：完成（2026-09-13，分支 `feat/m2-first-globe`，未合并 `main`）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
 - **目标**：示例站看到带影像的地球，可旋转 / 缩放 / 倾斜，缩放到街区级别不抖动。
 - **范围**：`Scene`、`FrameState`、`Camera`（Reverse-Z 投影、相机相对视图矩阵）、`ScreenSpaceCameraController`（3D 分支）、`Globe`、`QuadtreePrimitive` 系列、`GlobeSurfaceTile`（无地形状态）、`EllipsoidTerrainProvider` + `HeightmapTessellator`（零高度）Worker、`ImageryLayer(Collection)`、`Imagery`、`TileImagery`、`ImageryProvider` 基类、`UrlTemplateImageryProvider`、`OpenStreetMapImageryProvider`、`TileMapServiceImageryProvider`、影像图集（`texture_2d_array`）、地形着色器（前向 Lambert）、`SkyBox` 占位（纯色）、帧级 uniform、性能面板（CPU 帧时间、瓦片数）。
 - **不做**：地形高程、大气、光照模型、G-buffer、拾取。

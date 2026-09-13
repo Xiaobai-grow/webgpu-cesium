@@ -32,7 +32,7 @@
 | `GeographicTilingScheme` `WebMercatorTilingScheme` `TilingScheme` | 移植 | M1 | 完成 | — |
 | `CubicRealPolynomial` `QuadraticRealPolynomial` `QuarticRealPolynomial` `TridiagonalSystemSolver` | 移植 | M1 | 完成 | 多项式顶部 `@ts-nocheck` |
 | `Spline` `LinearSpline` `HermiteSpline` `CatmullRomSpline` `QuaternionSpline` `ConstantSpline` `SteppedSpline` `MorphWeightSpline` `HermitePolynomialApproximation` `LagrangePolynomialApproximation` `LinearApproximation` `InterpolationAlgorithm` | 移植 | M5 | 未开始 | 动画与相机飞行需要 |
-| `EasingFunction` | 移植 | M2 | 未开始 | 相机飞行 |
+| `EasingFunction` | 移植 | M2 | 完成 | 手写 LINEAR / QUAD / CUBIC，不依赖 tween.js |
 | `AttributeCompression` `ComponentDatatype` `IndexDatatype` `PrimitiveType` `VertexFormat` | 移植 | M1 | 完成 | `ComponentDatatype` 映射到 `GPUVertexFormat` 名 |
 | `barycentricCoordinates` `pointInsideTriangle` `Tipsify` `WireframeIndexGenerator` | 移植 | M3 / M5 | 未开始 | — |
 | `MortonOrder` `HilbertOrder` `S2Cell` | 移植 | M5 | 未开始 | 隐式瓦片 |
@@ -56,7 +56,7 @@
 | `Resource` `Request` `RequestScheduler` `RequestState` `RequestType` `RequestErrorEvent` `DefaultProxy` `Proxy` `TrustedServers` `parseResponseHeaders` `objectToQuery` `queryToObject` `getAbsoluteUri` `getBaseUri` `getExtensionFromUri` `getFilenameFromUri` `isBlobUri` `isCrossOriginUrl` `isDataUri` `appendForwardSlash` `buildModuleUrl` `loadAndExecuteScript` | 移植 | M1 | 完成 | `fetchImage` → `ImageBitmap`；不用 urijs / XHR；`loadAndExecuteScript`（JSONP）仍后置 |
 | `TaskProcessor` | 改写 | M1 | 完成 | `new Worker(new URL())` + 可注入 factory；浏览器往返未测 |
 | `FeatureDetection` | 改写 | M0 / M1 | 完成 | WebGPU 在 `rhi/GpuDevice.probe()`；`core` 仅 endian / typed array / BigInt / WASM / Worker |
-| `Credit` | 移植 | M2 | 未开始 | — |
+| `Credit` | 移植 | M2 | 完成 | 无 DOMPurify，`text` 去标签 |
 | `Ion` `IonResource` | 移植 | M3 | 未开始 | — |
 | `getImagePixels` `getImageFromTypedArray` `loadImageFromTypedArray` `resizeImageToNextPowerOfTwo` `writeTextToCanvas` `getStringFromTypedArray` `getJsonFromTypedArray` `getMagic` `isBitSet` `createGuid` | 移植 | M2 / M9 | 未开始 | `resizeImageToNextPowerOfTwo` 可能不再需要 |
 | `Fullscreen` `ScreenSpaceEventHandler` `ScreenSpaceEventType` `KeyboardEventModifier` | 移植 | M1 / M2 | 进行中 | Handler / Type / Modifier 已按清单 1.15 提前到 M1（注入 EventTarget）；`Fullscreen` 留 M2 |
@@ -72,8 +72,8 @@
 
 | 模块 | 处理 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- | --- | --- |
-| `TerrainProvider` `TerrainData` `TerrainMesh` `TerrainEncoding` `TerrainQuantization` `HeightmapEncoding` `TileAvailability` `TileEdge` `TileProviderError` | 移植 | M2 / M3 | 未开始 | — |
-| `EllipsoidTerrainProvider` `HeightmapTessellator` | 移植 | M2 | 未开始 | 出球路径 |
+| `TerrainProvider` `TerrainData` `TerrainMesh` `TerrainEncoding` `TerrainQuantization` `HeightmapEncoding` `TileProviderError` | 移植 | M2 / M3 | 进行中 | M2 仅 NONE 量化 + 零高度；`TileAvailability` `TileEdge` 留 M3 |
+| `EllipsoidTerrainProvider` `HeightmapTessellator` | 移植 | M2 | 完成 | 16×16 全零，主线程同步细分，无裙边 |
 | `CesiumTerrainProvider` `QuantizedMeshTerrainData` `HeightmapTerrainData` `createWorldTerrainAsync` `createWorldBathymetryAsync` `ApproximateTerrainHeights` `VerticalExaggeration` `sampleTerrain` `sampleTerrainMostDetailed` `TerrainPicker` | 移植 | M3 | 未开始 | — |
 | `CustomHeightmapTerrainProvider` `ArcGISTiledElevationTerrainProvider` | 移植 | M3 | 未开始 | — |
 | `Cesium3DTilesTerrainProvider` `Cesium3DTilesTerrainData` `Cesium3DTilesTerrainGeometryProcessor` | 移植 | M3（可选） | 未开始 | — |
@@ -95,16 +95,16 @@
 
 | 模块 | 处理 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- | --- | --- |
-| `Scene` | 改写 | M2 | 未开始 | 删除 2D / CV、多视锥、`commandList`；接 Render Graph |
-| `FrameState` | 改写 | M2 | 未开始 | 见 [05](../10-architecture/05-scene-camera-precision.md) |
-| `Camera` `CameraFlightPath` `computeFlyToLocationForRectangle` `TweenCollection` | 改写 | M2 | 未开始 | Reverse-Z、相机相对视图 |
-| `ScreenSpaceCameraController` `CameraEventAggregator` `CameraEventType` | 移植（3D 分支） | M2 | 未开始 | — |
+| `Scene` | 改写 | M2 | 完成 | 删除 2D / CV、多视锥、`commandList`；稳定 `globe` pass |
+| `FrameState` | 改写 | M2 | 完成 | 见 [05](../10-architecture/05-scene-camera-precision.md) |
+| `Camera` `CameraFlightPath` `computeFlyToLocationForRectangle` `TweenCollection` | 改写 | M2 | 进行中 | Camera / Tween / flyTo 已做；`CameraFlightPath` 完整路径未移植 |
+| `ScreenSpaceCameraController` `CameraEventAggregator` `CameraEventType` | 移植（3D 分支） | M2 | 进行中 | 3D 旋转 / 缩放 / 倾斜；无 Aggregator 录制回放 |
 | `DeviceOrientationCameraController` | 后置 | — | 未开始 | — |
-| `SceneTransforms` | 改写 | M2 | 未开始 | 深度反投影用 Reverse-Z |
+| `SceneTransforms` | 改写 | M2 | 完成 | 最小 `getPickRay` / 世界↔窗 |
 | `View` `SceneFramebuffer` `PickDepth` `PickFramebuffer` `PickDepthFramebuffer` `Picking` `SnapFramebuffer` `Snapping` `PlanarFillIdFramebuffer` `OpaqueDepthTextureHandle` | 改写 | M5 / M9 | 未开始 | 合并为 Render Graph 的 `PickPass` + `ReadbackQueue` |
 | `SceneMode` `SceneTransitioner` `MapMode2D` `FrustumCommands` `DerivedCommand` `DepthPlane` `OIT` `ViewportQuad` `JobScheduler` `JobType` | 弃用 | — | 已弃用 | `OIT` 的权重函数移植到 WBOIT 模块；`JobScheduler` 由 RHI 上传预算替代 |
-| `CreditDisplay` | 移植 | M2 | 未开始 | DOM 部分移到 widgets |
-| `FrameRateMonitor` `PerformanceDisplay` `DebugInspector` | 改写 | M2 | 未开始 | 性能面板走 widgets + timestamp-query |
+| `CreditDisplay` | 移植 | M2 | 完成 | 文本归属；挂在 Viewer 容器 |
+| `FrameRateMonitor` `PerformanceDisplay` `DebugInspector` | 改写 | M2 | 进行中 | `PerformanceDisplay` 简版；timestamp-query 留 M4 |
 | `Light` `DirectionalLight` `SunLight` | 移植 | M4 | 未开始 | — |
 | `Fog` `Atmosphere` `SkyAtmosphere` `DynamicAtmosphereLightingType` `Sun` `Moon` `SkyBox` `SunPostProcess` | 改写 | M4 | 未开始 | 由 `environment` 包的 Hillaire 大气 / 天体替代；保留 `Scene.fog` / `Scene.skyAtmosphere` 等属性名作为开关 |
 | `ImageBasedLighting` `SpecularEnvironmentCubeMap` `DynamicEnvironmentMapManager` `BrdfLutGenerator` | 改写 | M4 | 未开始 | compute 生成 |
@@ -120,11 +120,11 @@
 
 | 模块 | 处理 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- | --- | --- |
-| `QuadtreePrimitive` `QuadtreeTile` `QuadtreeTileProvider` `QuadtreeTileLoadState` `QuadtreeOccluders` `TileReplacementQueue` `TileSelectionResult` `TileBoundingRegion` | 移植 | M2 | 未开始 | — |
-| `Globe` `GlobeSurfaceTile` `GlobeSurfaceTileProvider` `TerrainFillMesh` `TerrainState` `Terrain` | 改写 | M2 / M3 | 未开始 | DrawCommand 生成改 RenderItem |
+| `QuadtreePrimitive` `QuadtreeTile` `QuadtreeTileProvider` `QuadtreeTileLoadState` `QuadtreeOccluders` `TileReplacementQueue` `TileSelectionResult` `TileBoundingRegion` | 移植 | M2 | 完成 | 精简移植，非 2000 行 1:1 |
+| `Globe` `GlobeSurfaceTile` `GlobeSurfaceTileProvider` `TerrainFillMesh` `TerrainState` `Terrain` | 改写 | M2 / M3 | 进行中 | M2 零高度路径；`TerrainFillMesh` 留 M3 |
 | `GlobeSurfaceShaderSet` `GlobeDepth` `GlobeTranslucency*` `TranslucentTileClassification` | 弃用 / 后置 | — | — | 着色器变体由组合器管理；地表透明后置 |
-| `ImageryLayer` `ImageryLayerCollection` `Imagery` `TileImagery` `ImageryState` `ImageryLayerFeatureInfo` `GetFeatureInfoFormat` `TimeDynamicImagery` | 移植 / 改写 | M2 | 未开始 | 纹理上传与重投影改写 |
-| `ImageryProvider` `UrlTemplateImageryProvider` `OpenStreetMapImageryProvider` `TileMapServiceImageryProvider` `SingleTileImageryProvider` `GridImageryProvider` `TileCoordinatesImageryProvider` `TileDiscardPolicy` `DiscardMissingTileImagePolicy` `DiscardEmptyTileImagePolicy` `NeverTileDiscardPolicy` | 移植 | M2 | 未开始 | — |
+| `ImageryLayer` `ImageryLayerCollection` `Imagery` `TileImagery` `ImageryState` `ImageryLayerFeatureInfo` `GetFeatureInfoFormat` `TimeDynamicImagery` | 移植 / 改写 | M2 | 进行中 | 层 / Imagery / TileImagery 已做；要素查询与时序影像未做 |
+| `ImageryProvider` `UrlTemplateImageryProvider` `OpenStreetMapImageryProvider` `TileMapServiceImageryProvider` `SingleTileImageryProvider` `GridImageryProvider` `TileCoordinatesImageryProvider` `TileDiscardPolicy` `DiscardMissingTileImagePolicy` `DiscardEmptyTileImagePolicy` `NeverTileDiscardPolicy` | 移植 | M2 | 进行中 | OSM / URL / TMS / Grid / TileCoordinates / DiscardPolicy 已做；`SingleTile` 未做 |
 | `WebMapServiceImageryProvider` `WebMapTileServiceImageryProvider` `ArcGisMapServerImageryProvider` `ArcGisMapService` `ArcGisBaseMapType` `BingMapsImageryProvider` `BingMapsStyle` `IonImageryProvider` `IonImageryProviderFactory` `IonWorldImageryStyle` `createWorldImageryAsync` `Google2DImageryProvider` `Azure2DImageryProvider` `MapboxImageryProvider` `MapboxStyleImageryProvider` | 移植 | M3 | 未开始 | — |
 | `GoogleEarthEnterpriseImageryProvider` `GoogleEarthEnterpriseMapsProvider` | 后置 | — | 未开始 | — |
 | `Megatexture` | 参考 | M8 | 未开始 | 体素用的图集；虚拟纹理自研 |
@@ -194,7 +194,7 @@ fork 内 `ThreeGeospatial/*` 与 `Extension/Ocean/*` 的 GLSL（大气、云、�
 | Worker | 处理 | 里程碑 | 状态 |
 | --- | --- | --- | --- |
 | `createTaskProcessorWorker` `transferTypedArrayTest` | 改写 | M1 | `createTaskProcessorWorker` 完成；`transferTypedArrayTest` 未做 |
-| `createVerticesFromHeightmap` | 移植 | M2 | 未开始 |
+| `createVerticesFromHeightmap` | 移植 | M2 | 完成 | 默认同步调用；Worker 入口已导出，未默认启用 |
 | `createVerticesFromQuantizedTerrainMesh` `upsampleQuantizedTerrainMesh` `incrementallyBuildTerrainPicker` | 移植 | M3 | 未开始 |
 | `createVerticesFromCesium3DTilesTerrain` `upsampleVerticesFromCesium3DTilesTerrain` | 移植 | M3（可选） | 未开始 |
 | `decodeDraco` `transcodeKTX2` | 移植 | M5 | 未开始 |
@@ -205,7 +205,7 @@ fork 内 `ThreeGeospatial/*` 与 `Extension/Ocean/*` 的 GLSL（大气、云、�
 
 ## Widgets（`packages/widgets`，弃用，Vue 3 重做）
 
-`Viewer` `CesiumWidget` `Animation` `Timeline` `BaseLayerPicker` `SceneModePicker`（不需要）`NavigationHelpButton` `FullscreenButton` `VRButton`（不需要）`Geocoder` `HomeButton` `InfoBox` `SelectionIndicator` `ProjectionPicker`（不需要）`Cesium3DTilesInspector` `CesiumInspector` `VoxelInspector` `PerformanceWatchdog` `I3SBuildingSceneLayerExplorer`：M9 用 Vue 3 实现 `Viewer` 容器、`Timeline`、`Animation`、`BaseLayerPicker`、`NavigationHelp`、`Fullscreen`、`Home`、`InfoBox`、`SelectionIndicator`、`PerformancePanel`、`TilesInspector`（简版）。
+M2：最小 `CesiumViewer`（画布挂载、Credit、性能条）。完整 `Viewer` / `Timeline` / `Animation` / `BaseLayerPicker` / `NavigationHelp` / `Fullscreen` / `Home` / `InfoBox` / `SelectionIndicator` / `PerformancePanel` / `TilesInspector` 留 M9（Vue 3）。
 
 ## 新增模块（Cesium 没有）
 
@@ -214,13 +214,13 @@ fork 内 `ThreeGeospatial/*` 与 `Extension/Ocean/*` 的 GLSL（大气、云、�
 | `GpuDevice` `PipelineCache` `BindGroupLayoutCache` `SamplerCache` `ShaderModuleCache` | rhi | M0 | 完成 |
 | `ReadbackQueue` `GpuTimer` | rhi | M4 | 未开始 |
 | WGSL 组合器（`#import` / `#if`、规范化、sourceMap、hash）与内置模块 `builtin/constants.wgsl` `builtin/frame.wgsl` | shaders | M0 | 完成 |
-| WGSL 反射（`wgsl_reflect`） | shaders | M2 | 未开始 |
+| WGSL 反射（`wgsl_reflect`） | shaders | M2 | 未开始 | M2 继续手写 FrameUniforms 偏移，单测锁定 `frame.wgsl` |
 | `RenderGraph`（最小：`addPass` / 资源句柄 / 导入 canvas / 裁剪 / 拓扑排序）、`RenderItem` 类型 | renderer | M0 | 完成 |
 | `RenderGraph` 瞬态资源别名、多队列、性能统计 | renderer | M4 | 未开始 |
-| `FrameUniformsBuffer`（M0 只填 `time` / `deltaTime` / `frameNumber` / `viewport`，矩阵置单位） | renderer | M0 | 完成（占位） |
+| `FrameUniformsBuffer`（矩阵 + RTE 高低位 + 视口 / 时间） | renderer | M0 / M2 | 完成 | 偏移手写 |
 | `Material` `Texture` 基类，`MeshBasicMaterial` `MeshStandardMaterial` `MeshPhysicalMaterial`，`MaterialOutput` 契约，`onBeforeCompose` 接口点 | renderer / shaders | M4 | 未开始 |
 | `LineBasicMaterial` `LineDashedMaterial` `PointsMaterial` `SpriteMaterial` `ShaderMaterial` `ShadowMaterial` `MeshNormalMaterial` `MeshDepthMaterial`，GIS 扩展材质，`VideoTexture` `CanvasTexture` `DataTexture` 系列 | renderer | M9 | 未开始 |
-| `FrameUniforms` 完整填充器（相机矩阵与高低位）、`EnvironmentState` | renderer / scene | M2 / M4 | 未开始 |
+| `FrameUniforms` 完整填充器（相机矩阵与高低位）、`EnvironmentState` | renderer / scene | M2 / M4 | 进行中 | M2 已填矩阵与 RTE；`EnvironmentState` 留 M4 |
 | Hillaire 大气、`StarField`、月面渲染 | environment | M4 | 未开始 |
 | CSM、GTAO、TAA、Bloom、自动曝光、WBOIT | renderer | M6 | 未开始 |
 | `VolumetricClouds` `WeatherMapProvider` `WeatherSystem` `Ocean` | environment | M7 | 未开始 |

@@ -42,22 +42,22 @@
 
 ## M2 球出现
 
-| # | 任务 | 产出 | 验收 | 依赖 |
-| --- | --- | --- | --- | --- |
-| 2.1 | `FrameState` + `Scene` 骨架 | `Scene({ canvas, device })`、`render(time)`、`preUpdate / postUpdate / preRender / postRender` 事件、`requestRenderMode`；帧图组装占位 | 空场景清屏 | 0.8, 1.2 |
-| 2.2 | `Camera`（改写） | 相机相对视图矩阵、Reverse-Z 投影、`setView` `lookAt` `flyTo`（用 `EasingFunction`、`TweenCollection`）`pickEllipsoid` `getPixelSize` `computeViewRectangle` | 新增 Spec：视图矩阵平移为 0；`flyTo` 结束姿态 | 1.3–1.7 |
-| 2.3 | `FrameUniforms` 填充器 | 视图 / 投影 / 逆矩阵、相机位置高低位、视口、时间、像素比；WGSL `builtin/frame.wgsl` 与 TS 结构由反射对齐 | 单测：偏移与 WGSL 反射一致 | 2.2, 0.5 |
-| 2.4 | `ScreenSpaceCameraController`（3D） | 旋转 / 缩放 / 倾斜 / 平移、惯性、`minimumZoomDistance`、椭球拾取旋转中心；地形碰撞留接口 | 输入序列回放对比相机姿态（Cesium 录制） | 2.2, 1.15 |
-| 2.5 | 四叉树 | `QuadtreePrimitive` `QuadtreeTile` `QuadtreeTileProvider` `QuadtreeTileLoadState` `QuadtreeOccluders` `TileReplacementQueue` `TileSelectionResult` `TileBoundingRegion` | 移植 Spec 的非渲染部分 | 1.4, 1.5, 1.8 |
-| 2.6 | 无高程地形路径 | `TerrainProvider` `TerrainData` `TerrainMesh` `TerrainEncoding` `EllipsoidTerrainProvider` `HeightmapTerrainData`（零高度）`HeightmapTessellator` Worker `createVerticesFromHeightmap` | Worker 输出顶点数与索引与 Cesium 一致 | 1.12, 1.14 |
-| 2.7 | `GlobeSurfaceTile` + `GlobeSurfaceTileProvider`（改写） | 瓦片状态机、顶点 buffer 上传（RHI）、瓦片 storage 数据、RenderItem 输出 | 单测：状态迁移 | 2.5, 2.6 |
-| 2.8 | 影像层 | `ImageryProvider` `ImageryLayer` `ImageryLayerCollection` `Imagery` `TileImagery` `ImageryState` `TileDiscardPolicy` 系列 `UrlTemplateImageryProvider` `OpenStreetMapImageryProvider` `TileMapServiceImageryProvider` | 移植 Spec 的非渲染部分 | 1.11 |
-| 2.9 | 影像图集 | `texture_2d_array` 图集分配器（layer 分配 / 释放）、`ImageBitmap` 上传、Web Mercator → 地理重投影 compute pass | 单测：分配器；截图：重投影正确 | 0.6, 2.8 |
-| 2.10 | 地形着色器 | `globe/terrain.wgsl`：`TerrainEncoding` 解码、`override` 影像层数、层参数合成、Lambert；`globe/reproject.wgsl` | 组合器快照 | 0.5, 2.3 |
-| 2.11 | `Globe` 装配 | `Globe`（`imageryLayers`、`terrainProvider`、`show`、`baseColor`）、`Scene.globe`；RenderItem 进入 `globe` pass | 示例站出球 | 2.7–2.10 |
-| 2.12 | 性能面板（简版） | CPU 帧时间、瓦片数（已加载 / 渲染 / 请求中）、RenderItem 数、pipeline 数 | 面板显示 | 2.11 |
-| 2.13 | Playwright 基线 | 太空 / 国家 / 城市三张截图；缩放序列无黑瓦片断言（采样像素） | CI 绿 | 2.11 |
-| 2.14 | 精度验证 | 缩放到 100 m 高度，录屏或截图序列检查抖动；对比 `far` 无限远与 1e9 | 记录到 [05](../10-architecture/05-scene-camera-precision.md) 待验证 | 2.11 |
+| # | 任务 | 产出 | 验收 | 依赖 | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| 2.1 | `FrameState` + `Scene` 骨架 | `Scene({ canvas, device })`、`render(time)`、`preUpdate / postUpdate / preRender / postRender` 事件、`requestRenderMode`；稳定 `globe` pass + 动态 RenderItem | 空场景清屏；有 Globe 时出球 | 0.8, 1.2 | 完成 |
+| 2.2 | `Camera`（改写） | 相机相对视图矩阵、Reverse-Z 投影、`setView` `lookAt` `flyTo`（`EasingFunction` + `TweenCollection`）`pickEllipsoid` | 单测：视图平移为 0；near→NDC 1 / far→0；`flyTo(duration=0)` | 1.3–1.7 | 完成 |
+| 2.3 | `FrameUniforms` 填充器 | 视图 / 投影 / 逆矩阵、相机高低位、视口、时间；偏移表手写，单测锁定 `frame.wgsl` 成员顺序 | 未引入 `wgsl_reflect`（见 LOG） | 2.2, 0.5 | 完成（手写偏移） |
+| 2.4 | `ScreenSpaceCameraController`（3D） | 左旋 / 右倾 / 滚轮缩放 / 惯性 / `minimumZoomDistance` / 椭球拾取旋转中心 | 示例站可操作；无 Cesium 输入录制回放 | 2.2, 1.15 | 部分 |
+| 2.5 | 四叉树 | `QuadtreePrimitive` 等精简移植：SSE + 视锥 + 地平线；子瓦片未就绪回退本级 | 单测：0 级坐标、太空粗 LOD、近地细化 | 1.4, 1.5, 1.8 | 完成 |
+| 2.6 | 无高程地形路径 | `EllipsoidTerrainProvider` 16×16 全零；`HeightmapTessellator` 主线程同步；`createVerticesFromHeightmap` 可给 Worker | 顶点数 256、索引 1350；默认不走 Worker | 1.12, 1.14 | 完成（同步细分） |
+| 2.7 | `GlobeSurfaceTile` + `GlobeSurfaceTileProvider` | 网格上传、TileUniforms、`pipelineKey` 缓存、RenderItem | GPU 回读非全黑 | 2.5, 2.6 | 完成 |
+| 2.8 | 影像层 | `UrlTemplate` / OSM / TMS / Grid / TileCoordinates、`ImageryLayer(Collection)`、DiscardPolicy | 非渲染单测：URL 展开、Credit、缓存 | 1.11 | 完成 |
+| 2.9 | 影像图集 | `texture_2d_array` 分配 / 释放 / `copyExternalImageToTexture`；`reproject.wgsl` 已写未接线 | 主路径要求地形与影像 0 级瓦片数相同 | 0.6, 2.8 | 部分 |
+| 2.10 | 地形着色器 | `globe/terrain.wgsl` RTE + Lambert + 图集；组合器 `override` 透传与顶层重名检查 | 组合器快照 | 0.5, 2.3 | 完成 |
+| 2.11 | `Globe` 装配 | `Globe` + `Scene.globe` + `CesiumViewer`；示例 `hello-globe` | 示例站看见 OSM 地球 | 2.7–2.10 | 完成 |
+| 2.12 | 性能面板（简版） | CPU 帧时间、瓦片数、RenderItem、pipeline | 画布左下角 | 2.11 | 完成 |
+| 2.13 | Playwright 基线 | 太空 / 国家 / 城市三张截图；GPU 测试用 `copyTextureToBuffer` 断言非全黑 | 无 WebGPU 则 skip | 2.11 | 完成 |
+| 2.14 | 精度验证 | 高空默认天底；RTE 高低位单测；未做 100 m 录屏抖动对比 | 见 [05](../10-architecture/05-scene-camera-precision.md) | 2.11 | 部分 |
 
 ## 完成定义
 

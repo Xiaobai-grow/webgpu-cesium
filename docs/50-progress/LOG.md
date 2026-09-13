@@ -2,6 +2,21 @@
 
 按日期倒序。标签：`[对齐]` `[决策]` `[变更]` `[推翻]` `[完成]` `[阻塞]` `[风险]`。
 
+## 2026-09-13（第五轮：M2）
+
+- [完成] M2 2.1–2.13 落地于分支 `feat/m2-first-globe`（未合并 `main`）：`Scene` / `Camera`（Reverse-Z + RTE）/ 四叉树 / 零高度椭球 / OSM 影像 / Credit / `CesiumViewer` / `hello-globe`。本机 Chrome 打开示例站可见带 OSM 纹理的地球（非洲 / 欧洲轮廓清晰），Credit「© OpenStreetMap contributors」，CPU ≈ 1 ms。
+- [完成] 验证：`pnpm build` / `lint` / `typecheck` 通过；`pnpm test` 32 文件 175 用例（含 `scene` Node 与 `scene-gpu` `copyTextureToBuffer` 非全黑）。本机有 WebGPU。
+- [决策] 默认 OSM 用官方 `tile.openstreetmap.org`：影像经 `Resource.fetch` + `createImageBitmap`，不依赖 canvas CORS。Carto Voyager（`OSM_CORS_URL`）作备选，免费档会打「API KEY REQUIRED」水印。
+- [决策] hello-globe 地形用 `WebMercatorTilingScheme` 与 OSM 1:1；`EllipsoidTerrainProvider` 默认仍是 Geographic。0 级瓦片数不同则跳过影像、只画 `baseColor`。`reproject.wgsl` 已写未接线。
+- [决策] `FrameUniforms` 继续手写偏移，不引入 `wgsl_reflect`；单测锁定 `frame.wgsl` 成员顺序。
+- [变更] 地形网格主线程同步细分（16×16 = 256 顶点 / 1350 索引，无裙边）；`createVerticesFromHeightmap` 可给 Worker，默认不走。
+- [变更] 组合器补 `override` 透传与顶层符号重名检查。`RenderItem.pipelineKey` 避免每帧 `stableKey`。
+- [变更] 高空默认姿态改为天底（`pitch = -PI/2`）。`-PI/4` 在 3.5R 处看向太空，0 级瓦片被视锥剔除，地球全黑。
+- [变更] 四叉树：子瓦片未入选时回退画本级；地平线不用球心 `isPointVisible`（大瓦片球心在地球内会误剔）。
+- [变更] 着色器绑定：group 0 FrameUniforms / group 1 `texture_2d_array` / group 2 TileUniforms（文档曾写 group 2/3）。
+- [风险] 2.4 无 Cesium 输入录制回放；2.14 无 100 m 录屏抖动。官方 OSM 有使用策略，Playwright 拉不到瓦片时地球只有底色；e2e 用 `?imagery=grid` 生成三视角基线。本机 Chrome 已验证 OSM 纹理。
+- [风险] 像素断言必须用 `copyTextureToBuffer`，且须缓存本帧 `getCurrentTexture()`；2d `drawImage` 读持续 rAF 的 WebGPU canvas 会得到空图。
+
 ## 2026-09-13（第四轮：M1）
 
 - [完成] M1 1.1–1.15 落地于分支 `feat/m1-core-math`（未合并 `main`）：`tools/port-cesium`；`@webgpu-cesium/core` 数学 / 地理 / 包围体 / Reverse-Z 视锥 / Transforms / 瓦片方案 / 时间 / 历表 / Resource / TaskProcessor / 输入与数据结构。公开 API 保留 Cesium 原名（ADR-0004）。

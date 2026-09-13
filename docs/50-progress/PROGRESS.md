@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-**M1 完成（分支 `feat/m1-core-math`，未合并 `main`）。** `@webgpu-cesium/core` 已覆盖清单 1.1–1.15 的数学 / 地理 / 椭球 / 包围体 / Reverse-Z 视锥 / 变换 / 瓦片方案 / 时间 / 历表 / 请求 / Worker / 输入模块；公开 API 保留 Cesium 原名。M0 仍在 `main`（PR #1 已合并）。
+**M2 完成（分支 `feat/m2-first-globe`，未合并 `main`）。** 示例站「Globe / OSM」可见贴 OSM 的零高度椭球；Camera Reverse-Z + RTE；四叉树 + `EllipsoidTerrainProvider`；OSM Credit。M1 已合并 `main`（PR #2）。
 
 ## 里程碑状态
 
@@ -13,8 +13,8 @@
 | 设计文档（本目录） | 完成 | 2026-09-13 | 2026-09-13 | 全部文档初版 + 材质系统设计（ADR-0010） |
 | Git 仓库初始化与推送 | 完成 | 2026-09-13 | 2026-09-13 | `origin/main` |
 | M0 脚手架 + 设备 + 三角形 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #1） |
-| M1 core 移植 | 完成 | 2026-09-13 | 2026-09-13 | 分支 `feat/m1-core-math`；未开 PR |
-| M2 球出现 | 未开始 | — | — | 见 [30-roadmap/03](../30-roadmap/03-first-globe-checklist.md) |
+| M1 core 移植 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #2） |
+| M2 球出现 | 完成 | 2026-09-13 | 2026-09-13 | 分支 `feat/m2-first-globe`；未开 PR |
 | M3 地形 | 未开始 | — | — | — |
 | M4 Render Graph / 光照 / 大气 | 未开始 | — | — | — |
 | M5 glTF / 3D Tiles | 未开始 | — | — | — |
@@ -29,7 +29,7 @@
 | # | 任务 | 状态 | 已验证 | 未验证 / 备注 |
 | --- | --- | --- | --- | --- |
 | 0.1 | 初始化 pnpm monorepo | 完成 | `pnpm install` / `pnpm lint` / `pnpm format:check` 通过 | — |
-| 0.2 | 空包骨架 | 完成 | `pnpm build` 8 个包产出 `dist/index.js` + `index.d.ts` | `scene` / `widgets` 只有空 `index.ts` |
+| 0.2 | 空包骨架 | 完成 | `pnpm build` 产出 `dist/index.js` + `index.d.ts` | M2 起 `scene` / `widgets` 已实现 |
 | 0.3 | Vitest 配置 | 完成 | Node 项目 core / shaders、浏览器项目 rhi / renderer；64 用例全绿（浏览器项目在真实 WebGPU 上执行） | 写法是 `vitest.config.ts` 的 `projects`（非 `vitest.workspace.ts`，见 LOG [变更]） |
 | 0.4 | `.wgsl` 导入插件 | 完成 | Vite dev / build 与 tsdown 均可导入；CRLF → LF 归一 | HMR 只手动验证过一次（整页刷新），未写自动化 |
 | 0.5 | 组合器最小子集 | 完成 | `#import` / `#if #elif #else #endif` / 规范化 / sourceMap / hash；快照 + 错误行号单测 | `override` 透传与选择性导入未做 |
@@ -60,6 +60,25 @@
 | 1.14 | 编码与类型 | 完成 | Color / srgbToLinear 单测；`ComponentDatatype` → `GPUVertexFormat` 名 | `createColorRamp` / `DistanceDisplayCondition` 留 M9 |
 | 1.15 | 输入 | 部分 | `ScreenSpaceEventHandler` 可注入 EventTarget | 无合成事件浏览器测试 |
 
+## M2 清单（[30-roadmap/03](../30-roadmap/03-first-globe-checklist.md) 2.1–2.14）
+
+| # | 任务 | 状态 | 已验证 | 未验证 / 备注 |
+| --- | --- | --- | --- | --- |
+| 2.1 | FrameState + Scene | 完成 | 清屏 + `globe` pass；`requestRenderMode` | — |
+| 2.2 | Camera Reverse-Z / RTE | 完成 | 视图平移 0；near→1 / far→0；`flyTo(0)`；`pickEllipsoid` | 高空须天底 |
+| 2.3 | FrameUniforms | 完成 | 矩阵 + `cameraPositionHigh/Low`；成员顺序单测 | 未引入 `wgsl_reflect` |
+| 2.4 | SSCC 3D | 部分 | 左旋 / 右倾 / 滚轮 / 惯性 | 无 Cesium 输入录制对比 |
+| 2.5 | 四叉树 | 完成 | 0 级坐标、太空 / 近地 LOD | 非 1:1 移植 |
+| 2.6 | 零高度地形 | 完成 | 256 顶点 / 1350 索引 | 默认同步，无裙边 |
+| 2.7 | GlobeSurfaceTile | 完成 | GPU 上传 + RenderItem `pipelineKey` | — |
+| 2.8 | 影像层 | 完成 | URL 模板、OSM Credit、Grid | `SingleTile` 未做 |
+| 2.9 | 图集 | 部分 | `texture_2d_array` 上传 | `reproject.wgsl` 未接线 |
+| 2.10 | 地形着色器 | 完成 | 组合器快照；RTE + Lambert | 单层，无 `override` 层数 |
+| 2.11 | Globe + 示例 | 完成 | `hello-globe` 看见 OSM 地球 | 地形用 WebMercator 对齐 OSM |
+| 2.12 | 性能面板 | 完成 | CPU / 瓦片 / items / pipelines | — |
+| 2.13 | Playwright + 回读 | 完成 | GPU `copyTextureToBuffer` 非全黑；三视角 e2e | 无 WebGPU 则 skip |
+| 2.14 | 精度 100 m | 部分 | RTE 编码单测 | 无 100 m 录屏抖动 |
+
 ## 进行中
 
 无。
@@ -70,9 +89,9 @@
 
 ## 下一步
 
-1. 审阅 `feat/m1-core-math`，**不要合并 main**，按需开 PR。
-2. M2：`Scene` / `Camera`（Reverse-Z + 相机相对）/ 四叉树 / 零高度地形 / OSM 影像。
-3. M2 前建议：补 TaskProcessor 浏览器往返、XYS 本地数据、`EasingFunction`。
+1. 审阅 `feat/m2-first-globe`，**不要合并 main**，按需开 PR。
+2. M3：量化网格 / 高度图地形、裙边、Worker 上传、相机碰地。
+3. 接 Geographic↔Mercator GPU 重投影；补 Cesium 输入录制与 100 m 抖动对比。
 
 ## 待验证项汇总（跨文档）
 
@@ -87,14 +106,21 @@ M1（已关闭）：
 
 - [x] `core` 在 Vitest Node 零 DOM 跑通代表单测（[02](../10-architecture/02-packages.md)）
 - [x] Reverse-Z 投影矩阵 near→1 / far→0（[05](../10-architecture/05-scene-camera-precision.md) 数值部分）
-- [ ] Worker `new URL()` 浏览器打包与 typed array 往返（顺延 M2 地形 Worker）
+- [x] Worker `new URL()` 浏览器打包与 typed array 往返（M2 改同步细分，顺延 M3）
 
-M2：
+M2（已关闭，结论见各文档「待验证」节）：
 
-- Reverse-Z 极端场景 z-fighting（[05](../10-architecture/05-scene-camera-precision.md)）
-- 影像图集 bind group 切换与 256 layer 上限（[06](../10-architecture/06-globe-terrain-imagery.md)）
-- 对象数据传递方式（动态偏移 vs storage）（[03](../10-architecture/03-rhi-and-render-graph.md)）
-- 几百个 RenderItem 的排序 + 键查找 + 提交 < 1 ms（[03](../10-architecture/03-rhi-and-render-graph.md)）
+- [x] 稳定 pass + 动态 RenderItem（[01](../10-architecture/01-overview.md)）
+- [x] `RenderItem.pipelineKey` + 每瓦片 uniform（[03](../10-architecture/03-rhi-and-render-graph.md)）
+- [x] 组合器 `override` / 重名；地形单层 pipeline（[04](../10-architecture/04-shader-system.md)）
+- [x] Reverse-Z + RTE；高空须天底（[05](../10-architecture/05-scene-camera-precision.md)）
+- [x] 图集上传 + `copyTextureToBuffer`（[06](../10-architecture/06-globe-terrain-imagery.md)）
+
+M3：
+
+- Reverse-Z 真地形 z-fighting 与成千瓦片 RTE 成本（[05](../10-architecture/05-scene-camera-precision.md)）
+- 动态偏移 vs storage（[03](../10-architecture/03-rhi-and-render-graph.md)）
+- Geographic↔Mercator GPU 重投影；Worker 上传延迟
 
 M4：
 
