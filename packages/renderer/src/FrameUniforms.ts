@@ -1,9 +1,9 @@
 /**
  * FrameUniforms：group 0 帧级 uniform 的 CPU 侧数据与 GPU buffer。
  *
- * 布局与 `@webgpu-cesium/shaders` 的 `builtin/frame.wgsl` 手写对齐（M0），
- * M2 起由反射生成偏移表并用单测校验。M0 只填 `time` / `deltaTime` / `frameNumber` / `viewport`，
- * 矩阵置单位矩阵，相机位置置 0。
+ * 布局与 `@webgpu-cesium/shaders` 的 `builtin/frame.wgsl` 手写对齐。
+ * M2 未引入 `wgsl_reflect`：偏移表仍手写，由 `FrameUniforms.test.ts` 解析 WGSL 成员顺序锁定。
+ * M2 起填写视图 / 投影矩阵与 `cameraPositionHigh/Low`（RTE）。
  */
 import { FRAME_UNIFORMS_BYTE_LENGTH } from "@webgpu-cesium/shaders"
 import { type GpuDevice, makeLabel } from "@webgpu-cesium/rhi"
@@ -33,6 +33,14 @@ export interface FrameUniformsValues {
   frameNumber: number
   /** 像素：x, y, width, height */
   viewport: readonly [number, number, number, number]
+  /** 列主序 16 个 f32；缺省保持上次 / 单位矩阵 */
+  viewMatrix?: ArrayLike<number>
+  projectionMatrix?: ArrayLike<number>
+  viewProjectionMatrix?: ArrayLike<number>
+  inverseProjectionMatrix?: ArrayLike<number>
+  /** ECEF 相机位置（f64），写入高低位 */
+  cameraPositionHigh?: readonly [number, number, number]
+  cameraPositionLow?: readonly [number, number, number]
 }
 
 const IDENTITY = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
@@ -73,6 +81,24 @@ export class FrameUniformsData {
     this.f32[layout.deltaTime / 4] = values.deltaTime
     this.f32.set(values.viewport, layout.viewport / 4)
     this.u32[layout.frameNumber / 4] = values.frameNumber >>> 0
+    if (values.viewMatrix !== undefined) {
+      this.setMatrix(layout.viewMatrix, values.viewMatrix)
+    }
+    if (values.projectionMatrix !== undefined) {
+      this.setMatrix(layout.projectionMatrix, values.projectionMatrix)
+    }
+    if (values.viewProjectionMatrix !== undefined) {
+      this.setMatrix(layout.viewProjectionMatrix, values.viewProjectionMatrix)
+    }
+    if (values.inverseProjectionMatrix !== undefined) {
+      this.setMatrix(layout.inverseProjectionMatrix, values.inverseProjectionMatrix)
+    }
+    if (values.cameraPositionHigh !== undefined) {
+      this.f32.set(values.cameraPositionHigh, layout.cameraPositionHigh / 4)
+    }
+    if (values.cameraPositionLow !== undefined) {
+      this.f32.set(values.cameraPositionLow, layout.cameraPositionLow / 4)
+    }
   }
 
   /** 读 f32（测试用） */

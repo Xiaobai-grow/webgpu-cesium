@@ -39,6 +39,11 @@ export interface RenderItem {
   pass: string
   /** 排序键，越小越先绘制 */
   sortKey: number
+  /**
+   * 已解析的 pipeline 缓存键。M2 起由调用方在描述不变时复用，避免每帧 `stableKey`（约 6.7 µs）。
+   * 缺省时 `drawRenderItems` 仍会现算。
+   */
+  pipelineKey?: string
   /** pipeline 描述（不含 `label`；同描述共享同一 pipeline） */
   pipeline: GPURenderPipelineDescriptor
   /** 按 group 索引排列的 bind group；`undefined` 槽位跳过 */
