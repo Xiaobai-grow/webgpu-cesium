@@ -65,6 +65,7 @@ webgpu-cesium/
 
 ## 待验证
 
-- [x] M0：tsdown 对多包 + `.wgsl` 资源的打包已验证（2026-09-13）：7 个包各一份 `tsdown.config.ts`（`format: esm`、`dts: true`、`fixedExtension: false`、`plugins: [wgsl()]`），`pnpm build` 一次通过，`.wgsl` 被内联为字符串进 `dist/index.js`；注意点：peer 依赖（`vite` / `rolldown` 类型）需 `deps.neverBundle` 排除，否则 dts 步骤会尝试打包其类型。Worker 打包 M1（`TaskProcessor`）再验证。
-- [ ] M1：`core` 在 Vitest Node 环境下零 DOM 依赖跑通移植的 Specs。
+- [x] M0：tsdown 对多包 + `.wgsl` 资源的打包已验证（2026-09-13）：7 个包各一份 `tsdown.config.ts`（`format: esm`、`dts: true`、`fixedExtension: false`、`plugins: [wgsl()]`），`pnpm build` 一次通过，`.wgsl` 被内联为字符串进 `dist/index.js`；注意点：peer 依赖（`vite` / `rolldown` 类型）需 `deps.neverBundle` 排除，否则 dts 步骤会尝试打包其类型。
+- [x] M1：`core` 在 Vitest Node 零 DOM 跑通代表单测（2026-09-13）：`test.projects` → `packages/core/src/**/*.test.ts`，23 文件 122 用例；`Resource` / `TaskProcessor` / `ScreenSpaceEventHandler` 用注入点避开 DOM lib。未整本搬运 Cesium Specs。
+- [ ] M2：`TaskProcessor` 的 `new Worker(new URL())` 浏览器打包与 typed array 往返（地形 Worker 落地时验证）。
 - [ ] M5：`tiles` 不依赖 `scene` 时如何获得 `FrameState`（用 `renderer` 定义的 `FrameContext` 接口而非 `scene` 类型）。

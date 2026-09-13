@@ -22,23 +22,23 @@
 
 ## M1 core 移植（与 M2 并行推进，M2 只依赖其中标 * 的模块）
 
-| # | 任务 | 模块 | 验收 |
-| --- | --- | --- | --- |
-| 1.1 | 移植脚本 | `tools/port-cesium`：从 `d:\code\cesium` 拷贝指定文件到目标包，加版权头，改扩展名，生成 TODO 列表 | 脚本可复跑 |
-| 1.2 * | 基础工具 | `defined` `Check` `DeveloperError` `RuntimeError` `destroyObject` `Frozen` `clone` `combine` `Event` `EventHelper` `Math` | Specs 通过 |
-| 1.3 * | 向量与矩阵 | `Cartesian2/3/4` `Cartographic` `Matrix2/3/4` `Quaternion` `HeadingPitchRoll` | Specs 通过 |
-| 1.4 * | 椭球与投影 | `Ellipsoid` `EllipsoidGeodesic` `EllipsoidTangentPlane` `scaleToGeodeticSurface` `GeographicProjection` `WebMercatorProjection` `Rectangle` | Specs 通过 |
-| 1.5 * | 包围体与相交 | `BoundingSphere` `OrientedBoundingBox` `AxisAlignedBoundingBox` `BoundingRectangle` `Plane` `Ray` `IntersectionTests` `CullingVolume` `Occluder` `EllipsoidalOccluder` | Specs 通过 |
-| 1.6 * | 视锥（改写） | `PerspectiveFrustum` `PerspectiveOffCenterFrustum` `OrthographicFrustum` `OrthographicOffCenterFrustum`：0..1 深度、Reverse-Z、无限远可选 | 新增 Spec：投影矩阵将 near 映射到 1、far 到 0；`computeCullingVolume` 与 Cesium 一致 |
-| 1.7 * | 变换 | `Transforms`（ENU、HPR、ICRF ↔ Fixed）`EncodedCartesian3` `TranslationRotationScale` | Specs 通过（ICRF 依赖 XYS 数据的用例可用本地数据） |
-| 1.8 * | 瓦片方案 | `TilingScheme` `GeographicTilingScheme` `WebMercatorTilingScheme` | Specs 通过 |
-| 1.9 | 时间 | `JulianDate` `GregorianDate` `LeapSecond` `TimeStandard` `TimeConstants` `Iso8601` `TimeInterval(Collection)` `Clock` 系列 | Specs 通过 |
-| 1.10 | 天体历表 | `Simon1994PlanetaryPositions` `Iau2006XysData` `EarthOrientationParameters` 系列 | Specs 通过 |
-| 1.11 * | 网络与调度 | `Resource` `Request` `RequestScheduler` `RequestType` `RequestState` `RequestErrorEvent` `TrustedServers` `Proxy` 及 URI 工具 | Specs 通过（`fetchImage` 改 `ImageBitmap`，用 mock） |
-| 1.12 * | Worker 调度 | `TaskProcessor`（`new URL` 约定）`createTaskProcessorWorker` | 浏览器测试：往返一个 typed array |
-| 1.13 | 数据结构 | `Heap` `DoublyLinkedList` `Queue` `AssociativeArray` `ManagedArray` `binarySearch` `mergeSort` 等 | Specs 通过 |
-| 1.14 * | 编码与类型 | `AttributeCompression` `ComponentDatatype`（→ `GPUVertexFormat`）`IndexDatatype` `PrimitiveType` `Color` | Specs 通过 |
-| 1.15 * | 输入 | `ScreenSpaceEventHandler` `ScreenSpaceEventType` `KeyboardEventModifier` | 浏览器测试：合成事件 |
+| # | 任务 | 模块 | 验收 | 状态 |
+| --- | --- | --- | --- | --- |
+| 1.1 | 移植脚本 | `tools/port-cesium`：从 `d:\code\cesium` 拷贝指定文件到目标包，加版权头，改扩展名，生成 TODO 列表 | 脚本可复跑 | 完成 |
+| 1.2 * | 基础工具 | `defined` `Check` `DeveloperError` `RuntimeError` `destroyObject` `Frozen` `clone` `combine` `Event` `EventHelper` `Math` | Specs 通过 | 完成 |
+| 1.3 * | 向量与矩阵 | `Cartesian2/3/4` `Cartographic` `Matrix2/3/4` `Quaternion` `HeadingPitchRoll` | Specs 通过 | 完成 |
+| 1.4 * | 椭球与投影 | `Ellipsoid` `EllipsoidGeodesic` `EllipsoidTangentPlane` `scaleToGeodeticSurface` `GeographicProjection` `WebMercatorProjection` `Rectangle` | Specs 通过 | 完成 |
+| 1.5 * | 包围体与相交 | `BoundingSphere` `OrientedBoundingBox` `AxisAlignedBoundingBox` `BoundingRectangle` `Plane` `Ray` `IntersectionTests` `CullingVolume` `Occluder` `EllipsoidalOccluder` | Specs 通过 | 完成 |
+| 1.6 * | 视锥（改写） | `PerspectiveFrustum` `PerspectiveOffCenterFrustum` `OrthographicFrustum` `OrthographicOffCenterFrustum`：0..1 深度、Reverse-Z、无限远可选 | 新增 Spec：投影矩阵将 near 映射到 1、far 到 0；`computeCullingVolume` 与 Cesium 一致 | 完成 |
+| 1.7 * | 变换 | `Transforms`（ENU、HPR、ICRF ↔ Fixed）`EncodedCartesian3` `TranslationRotationScale` | Specs 通过（ICRF 依赖 XYS 数据的用例可用本地数据） | 完成 |
+| 1.8 * | 瓦片方案 | `TilingScheme` `GeographicTilingScheme` `WebMercatorTilingScheme` | Specs 通过 | 完成 |
+| 1.9 | 时间 | `JulianDate` `GregorianDate` `LeapSecond` `TimeStandard` `TimeConstants` `Iso8601` `TimeInterval(Collection)` `Clock` 系列 | Specs 通过 | 完成 |
+| 1.10 | 天体历表 | `Simon1994PlanetaryPositions` `Iau2006XysData` `EarthOrientationParameters` 系列 | Specs 通过 | 部分（无 XYS JSON / 无独立单测） |
+| 1.11 * | 网络与调度 | `Resource` `Request` `RequestScheduler` `RequestType` `RequestState` `RequestErrorEvent` `TrustedServers` `Proxy` 及 URI 工具 | Specs 通过（`fetchImage` 改 `ImageBitmap`，用 mock） | 完成 |
+| 1.12 * | Worker 调度 | `TaskProcessor`（`new URL` 约定）`createTaskProcessorWorker` | 浏览器测试：往返一个 typed array | 部分（可注入 factory，无浏览器往返） |
+| 1.13 | 数据结构 | `Heap` `DoublyLinkedList` `Queue` `AssociativeArray` `ManagedArray` `binarySearch` `mergeSort` 等 | Specs 通过 | 完成 |
+| 1.14 * | 编码与类型 | `AttributeCompression` `ComponentDatatype`（→ `GPUVertexFormat`）`IndexDatatype` `PrimitiveType` `Color` | Specs 通过 | 完成 |
+| 1.15 * | 输入 | `ScreenSpaceEventHandler` `ScreenSpaceEventType` `KeyboardEventModifier` | 浏览器测试：合成事件 | 部分（模块已移植，无浏览器合成事件测试） |
 
 ## M2 球出现
 
