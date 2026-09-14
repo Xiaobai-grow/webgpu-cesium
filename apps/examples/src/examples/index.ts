@@ -65,6 +65,20 @@ export const EXAMPLES: readonly ExampleEntry[] = [
     milestone: "M4",
     load: () => import("./material-spheres"),
   },
+  {
+    id: "hello-gltf",
+    title: "glTF / Model",
+    description: "本地盒子：PBR、KHR_materials_unlit、MeshBasicMaterial 覆写，走 G-buffer",
+    milestone: "M5",
+    load: () => import("./hello-gltf"),
+  },
+  {
+    id: "hello-3dtiles",
+    title: "3D Tiles / City",
+    description: "本地四栋盒子 tileset（data URI fixture），延迟管线流式加载",
+    milestone: "M5",
+    load: () => import("./hello-3dtiles"),
+  },
 ]
 
 export function findExample(id: string): ExampleEntry | undefined {

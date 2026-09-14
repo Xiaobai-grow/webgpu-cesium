@@ -13,6 +13,7 @@ const workspaceAlias = {
   "@webgpu-cesium/renderer": `${root}packages/renderer/src/index.ts`,
   "@webgpu-cesium/environment": `${root}packages/environment/src/index.ts`,
   "@webgpu-cesium/scene": `${root}packages/scene/src/index.ts`,
+  "@webgpu-cesium/tiles": `${root}packages/tiles/src/index.ts`,
   "@webgpu-cesium/widgets": `${root}packages/widgets/src/index.ts`,
 }
 

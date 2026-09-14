@@ -20,6 +20,7 @@
     "@webgpu-cesium/rhi": "workspace:*",
     "@webgpu-cesium/scene": "workspace:*",
     "@webgpu-cesium/shaders": "workspace:*",
+    "@webgpu-cesium/tiles": "workspace:*",
     "@webgpu-cesium/widgets": "workspace:*",
     "vue": "^3.5.42",
     "vue-router": "^5.3.1"
