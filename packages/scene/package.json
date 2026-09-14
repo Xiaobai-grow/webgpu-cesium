@@ -24,6 +24,7 @@
     "@webgpu-cesium/environment": "workspace:*",
     "@webgpu-cesium/renderer": "workspace:*",
     "@webgpu-cesium/rhi": "workspace:*",
-    "@webgpu-cesium/shaders": "workspace:*"
+    "@webgpu-cesium/shaders": "workspace:*",
+    "@webgpu-cesium/tiles": "workspace:*"
   }
 }

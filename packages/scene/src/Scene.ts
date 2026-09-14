@@ -2,6 +2,7 @@
  * Scene：更新相机 / 环境 → 四叉树与网格 → Render Graph（G-buffer / 延迟光照 / 天空 / 色调）。
  */
 import {
+  type Cartesian2,
   Clock,
   EncodedCartesian3,
   Event,
@@ -9,6 +10,7 @@ import {
   Matrix4,
   RequestScheduler,
 } from "@webgpu-cesium/core"
+import { type Cesium3DTileset, type Model } from "@webgpu-cesium/tiles"
 import { EnvironmentState, HillaireAtmosphere } from "@webgpu-cesium/environment"
 import {
   FrameUniformsBuffer,
@@ -77,6 +79,8 @@ export class Scene {
   readonly environmentState = new EnvironmentState()
   readonly atmosphere = new HillaireAtmosphere()
   readonly meshes: Mesh[] = []
+  readonly models: Model[] = []
+  readonly tilesets: Cesium3DTileset[] = []
   light: SunLight | DirectionalLight = new SunLight()
   toneMapping: ToneMappingMode = "aces"
   requestRenderMode: boolean
@@ -189,15 +193,27 @@ export class Scene {
     )
     this.frameState.renderItems.length = 0
     this.frameState.afterRender.length = 0
+    this.frameState.statistics.tilesSelected = 0
+    this.frameState.statistics.tilesRendered = 0
+    this.frameState.statistics.tilesLoaded = 0
+    this.frameState.statistics.tilesRequested = 0
 
     this.ensureMeshes()
+    this.ensureModels()
+    this.ensureTilesets()
     this.globe.update(this.frameState)
+    for (const tileset of this.tilesets) {
+      tileset.update(this.frameState)
+    }
     this.postUpdate.raiseEvent(this, julian)
 
     const globeItems = this.globe.createRenderItems(this.frameState)
     const meshItems = this.collectMeshItems()
-    const items = [...globeItems, ...meshItems]
+    const modelItems = this.collectModelItems()
+    const tilesetItems = this.collectTilesetItems()
+    const items = [...globeItems, ...meshItems, ...modelItems, ...tilesetItems]
     this.frameState.renderItems.push(...items)
+    this.accumulateTilesetStats()
     this.frameState.statistics.renderItemCount = items.length
     this.frameState.statistics.pipelineCount = this.device.pipelines.size
     this.frameState.lightDirectionWC = this.environmentState.sunDirectionECEF
@@ -477,6 +493,75 @@ export class Scene {
     return items
   }
 
+  private ensureModels(): void {
+    for (const model of this.models) {
+      if (!model.initialized) {
+        model.initialize(this.device, this._frameUniforms)
+      }
+    }
+  }
+
+  private ensureTilesets(): void {
+    for (const tileset of this.tilesets) {
+      tileset.initialize(this.device, this._frameUniforms)
+    }
+  }
+
+  private collectModelItems() {
+    const items = []
+    this.ensureModels()
+    for (const model of this.models) {
+      items.push(...model.createRenderItems(this.device, this._frameUniforms))
+    }
+    return items
+  }
+
+  private collectTilesetItems() {
+    const items = []
+    for (const tileset of this.tilesets) {
+      items.push(...tileset.createRenderItems())
+    }
+    return items
+  }
+
+  private accumulateTilesetStats(): void {
+    let selected = this.frameState.statistics.tilesSelected
+    let rendered = this.frameState.statistics.tilesRendered
+    let loaded = this.frameState.statistics.tilesLoaded
+    let requested = this.frameState.statistics.tilesRequested
+    for (const tileset of this.tilesets) {
+      selected += tileset.statistics.numberOfTilesSelected
+      rendered += tileset.selectedTiles.filter((tile) => tile.contentReady).length
+      loaded += tileset.statistics.numberOfTilesWithContentReady
+      requested += tileset.statistics.numberOfPendingRequests
+    }
+    this.frameState.statistics.tilesSelected = selected
+    this.frameState.statistics.tilesRendered = rendered
+    this.frameState.statistics.tilesLoaded = loaded
+    this.frameState.statistics.tilesRequested = requested
+  }
+
+  /**
+   * 异步拾取：射线打中的 Model 或 3D Tile 要素。
+   *
+   * @param windowPosition 像素
+   */
+  pickAsync(windowPosition: Cartesian2): Promise<unknown> {
+    const ray = this.camera.getPickRay(windowPosition)
+    for (const tileset of this.tilesets) {
+      const hit = tileset.pick(ray.origin, ray.direction)
+      if (hit) {
+        return Promise.resolve(hit)
+      }
+    }
+    for (const model of this.models) {
+      if (model.pickBoundingSphere(ray.origin, ray.direction)) {
+        return Promise.resolve(model)
+      }
+    }
+    return Promise.resolve(undefined)
+  }
+
   /**
    * 当前帧 canvas 颜色回读（须在 render 之后立即调用）。
    */
@@ -497,6 +582,12 @@ export class Scene {
     this.globe.destroy()
     for (const mesh of this.meshes) {
       mesh.destroy()
+    }
+    for (const model of this.models) {
+      model.destroy()
+    }
+    for (const tileset of this.tilesets) {
+      tileset.destroy()
     }
     this.atmosphere.destroy()
     this._frameUniforms.destroy()
