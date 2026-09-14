@@ -6,3 +6,4 @@ export {
   type TextureSource,
 } from "./Texture"
 export { CubeTexture } from "./CubeTexture"
+export { CompressedTexture, type CompressedTextureOptions } from "./CompressedTexture"

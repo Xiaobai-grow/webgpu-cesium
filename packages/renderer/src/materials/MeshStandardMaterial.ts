@@ -11,10 +11,15 @@ export interface MeshStandardMaterialOptions extends MaterialOptions {
   metalness?: number
   map?: Texture
   normalMap?: Texture
+  aoMap?: Texture
+  emissiveMap?: Texture
+  metalnessMap?: Texture
+  roughnessMap?: Texture
   emissive?: Color
   emissiveIntensity?: number
   envMapIntensity?: number
   aoMapIntensity?: number
+  normalScale?: number
 }
 
 export class MeshStandardMaterial extends Material {
@@ -23,10 +28,15 @@ export class MeshStandardMaterial extends Material {
   metalness: number
   map: Texture | undefined
   normalMap: Texture | undefined
+  aoMap: Texture | undefined
+  emissiveMap: Texture | undefined
+  metalnessMap: Texture | undefined
+  roughnessMap: Texture | undefined
   emissive: Color
   emissiveIntensity: number
   envMapIntensity: number
   aoMapIntensity: number
+  normalScale: number
 
   /**
    * @param options PBR 参数
@@ -39,15 +49,23 @@ export class MeshStandardMaterial extends Material {
     this.metalness = options.metalness ?? 0
     this.map = options.map
     this.normalMap = options.normalMap
+    this.aoMap = options.aoMap
+    this.emissiveMap = options.emissiveMap
+    this.metalnessMap = options.metalnessMap
+    this.roughnessMap = options.roughnessMap
     this.emissive = options.emissive ?? new Color(0, 0, 0, 1)
     this.emissiveIntensity = options.emissiveIntensity ?? 1
     this.envMapIntensity = options.envMapIntensity ?? 1
     this.aoMapIntensity = options.aoMapIntensity ?? 1
+    this.normalScale = options.normalScale ?? 1
     if (this.map) {
       this.defines.HAS_MAP = 1
     }
     if (this.normalMap) {
       this.defines.HAS_NORMAL_MAP = 1
+    }
+    if (this.emissiveMap) {
+      this.defines.HAS_EMISSIVE_MAP = 1
     }
   }
 
@@ -80,10 +98,15 @@ export class MeshStandardMaterial extends Material {
     target.metalness = this.metalness
     target.map = this.map
     target.normalMap = this.normalMap
+    target.aoMap = this.aoMap
+    target.emissiveMap = this.emissiveMap
+    target.metalnessMap = this.metalnessMap
+    target.roughnessMap = this.roughnessMap
     target.emissive = this.emissive.clone() ?? new Color(0, 0, 0, 1)
     target.emissiveIntensity = this.emissiveIntensity
     target.envMapIntensity = this.envMapIntensity
     target.aoMapIntensity = this.aoMapIntensity
+    target.normalScale = this.normalScale
     return target
   }
 }
