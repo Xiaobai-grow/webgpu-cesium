@@ -31,11 +31,11 @@
 | `GeographicProjection` `WebMercatorProjection` `MapProjection` `Stereographic` | 移植 | M1 | 完成 | — |
 | `GeographicTilingScheme` `WebMercatorTilingScheme` `TilingScheme` | 移植 | M1 | 完成 | — |
 | `CubicRealPolynomial` `QuadraticRealPolynomial` `QuarticRealPolynomial` `TridiagonalSystemSolver` | 移植 | M1 | 完成 | 多项式顶部 `@ts-nocheck` |
-| `Spline` `LinearSpline` `HermiteSpline` `CatmullRomSpline` `QuaternionSpline` `ConstantSpline` `SteppedSpline` `MorphWeightSpline` `HermitePolynomialApproximation` `LagrangePolynomialApproximation` `LinearApproximation` `InterpolationAlgorithm` | 移植 | M5 | 未开始 | 动画与相机飞行需要 |
+| `Spline` `LinearSpline` `HermiteSpline` `CatmullRomSpline` `QuaternionSpline` `ConstantSpline` `SteppedSpline` `MorphWeightSpline` `HermitePolynomialApproximation` `LagrangePolynomialApproximation` `LinearApproximation` `InterpolationAlgorithm` | 移植 | M5 | 未做 | 解析 skins/animations，只画 bind pose；样条与播放留后置 |
 | `EasingFunction` | 移植 | M2 | 完成 | 手写 LINEAR / QUAD / CUBIC，不依赖 tween.js |
 | `AttributeCompression` `ComponentDatatype` `IndexDatatype` `PrimitiveType` `VertexFormat` | 移植 | M1 | 完成 | `ComponentDatatype` 映射到 `GPUVertexFormat` 名 |
 | `barycentricCoordinates` `pointInsideTriangle` `Tipsify` `WireframeIndexGenerator` | 移植 | M3 / M5 | 未开始 | — |
-| `MortonOrder` `HilbertOrder` `S2Cell` | 移植 | M5 | 未开始 | 隐式瓦片 |
+| `MortonOrder` `HilbertOrder` `S2Cell` | 移植 | M5 | 部分 | Morton / Hilbert 在 `tiles/implicit`（非 `core`）；`S2Cell` 未做 |
 | `NearFarScalar` `DistanceDisplayCondition` `Color` `srgbToLinear` `createColorRamp` | 移植 | M1 / M9 | 进行中 | `NearFarScalar` `Color` `srgbToLinear` 已完成；`DistanceDisplayCondition` `createColorRamp` 留 M9 |
 
 ### 时间（M1，移植）
@@ -63,7 +63,7 @@
 | `TexturePacker` | 移植 | M9 | 未开始 | 广告牌图集 |
 | `VideoSynchronizer` | 后置 | — | 未开始 | — |
 | `WebGLConstants` `webGLConstantToGlslType` `VulkanConstants` `PixelFormat` `CompressedTextureBuffer` | 弃用 / 改写 | — | — | `PixelFormat` 改写为 `GPUTextureFormat` 映射；`CompressedTextureBuffer` 改写为 KTX2 转码结果类型 |
-| `KTX2Transcoder` `loadKTX2` | 改写 | M5 | 未开始 | 目标格式按 `device.features` 选择 |
+| `KTX2Transcoder` `loadKTX2` | 改写 | M5 | 部分 | KTX2 图占位 1×1 白 `CompressedTexture`；未按 `device.features` 转码 |
 | `GeocoderService` 家族（`Bing` `Cartographic` `Google` `Ion` `OpenCage` `Pelias`）`GeocodeType` `IonGeocodeProviderType` | 后置 | M9+ | 未开始 | widgets 地理编码 |
 | `GoogleMaps` `ITwinPlatform` | 后置 | — | 未开始 | — |
 | `PinBuilder` | 移植 | M9 | 未开始 | — |
@@ -101,7 +101,7 @@
 | `ScreenSpaceCameraController` `CameraEventAggregator` `CameraEventType` | 移植（3D 分支） | M2 | 进行中 | 3D 旋转 / 缩放 / 倾斜；无 Aggregator 录制回放 |
 | `DeviceOrientationCameraController` | 后置 | — | 未开始 | — |
 | `SceneTransforms` | 改写 | M2 | 完成 | 最小 `getPickRay` / 世界↔窗 |
-| `View` `SceneFramebuffer` `PickDepth` `PickFramebuffer` `PickDepthFramebuffer` `Picking` `SnapFramebuffer` `Snapping` `PlanarFillIdFramebuffer` `OpaqueDepthTextureHandle` | 改写 | M5 / M9 | 未开始 | 合并为 Render Graph 的 `PickPass` + `ReadbackQueue` |
+| `View` `SceneFramebuffer` `PickDepth` `PickFramebuffer` `PickDepthFramebuffer` `Picking` `SnapFramebuffer` `Snapping` `PlanarFillIdFramebuffer` `OpaqueDepthTextureHandle` | 改写 | M5 / M9 | 部分 | M5 为 CPU 包围球 `Scene.pickAsync`；GPU PickPass 留 M9 |
 | `SceneMode` `SceneTransitioner` `MapMode2D` `FrustumCommands` `DerivedCommand` `DepthPlane` `OIT` `ViewportQuad` `JobScheduler` `JobType` | 弃用 | — | 已弃用 | `OIT` 的权重函数移植到 WBOIT 模块；`JobScheduler` 由 RHI 上传预算替代 |
 | `CreditDisplay` | 移植 | M2 | 完成 | 文本归属；挂在 Viewer 容器 |
 | `FrameRateMonitor` `PerformanceDisplay` `DebugInspector` | 改写 | M2 | 进行中 | `PerformanceDisplay` 简版；`GpuTimer` 已实现，默认不接入帧图 |
@@ -133,25 +133,25 @@
 
 | 模块 | 处理 | 里程碑 | 状态 | 备注 |
 | --- | --- | --- | --- | --- |
-| `GltfPipeline/*`（24 文件） | 移植 | M5 | 未开始 | — |
-| `GltfLoader` `GltfJsonLoader` `GltfBufferViewLoader` `GltfVertexBufferLoader` `GltfIndexBufferLoader` `GltfTextureLoader` `GltfImageLoader` `GltfDracoLoader` `GltfStructuralMetadataLoader` `GltfLoaderUtil` `BufferLoader` `DracoLoader` `ResourceLoader` `ResourceLoaderState` `ResourceCache` `ResourceCacheKey` `ResourceCacheStatistics` `SupportedImageFormats` `findMeshoptExtension` `hasExtension` `getBinaryAccessor` `getMeshPrimitives` | 移植 | M5 | 未开始 | GPU buffer / texture 创建改走 RHI |
+| `GltfPipeline/*`（24 文件） | 移植 | M5 | 部分 | 最小 `addDefaults` / `updateVersion`（1.x techniques 拒绝）；无独立 24 文件管线 |
+| `GltfLoader` `GltfJsonLoader` `GltfBufferViewLoader` `GltfVertexBufferLoader` `GltfIndexBufferLoader` `GltfTextureLoader` `GltfImageLoader` `GltfDracoLoader` `GltfStructuralMetadataLoader` `GltfLoaderUtil` `BufferLoader` `DracoLoader` `ResourceLoader` `ResourceLoaderState` `ResourceCache` `ResourceCacheKey` `ResourceCacheStatistics` `SupportedImageFormats` `findMeshoptExtension` `hasExtension` `getBinaryAccessor` `getMeshPrimitives` | 移植 | M5 | 部分 | 一体 `GltfLoader` + `ResourceCache` + `hasExtension` + accessor；Draco 抛错；meshopt 未解码 |
 | `GltfSpzLoader` | 后置 | — | 未开始 | 高斯泼溅 |
-| `ModelComponents` `AttributeType` `VertexAttributeSemantic` `InstanceAttributeSemantic` `AlphaMode` `Axis` `ModelAnimationLoop` `ModelAnimationState` | 移植 | M5 | 未开始 | — |
-| `Model/Model` `ModelSceneGraph` `ModelRuntimeNode` `ModelRuntimePrimitive` `ModelNode` `ModelSkin` `ModelAnimation*` `ModelArticulation*` `ModelFeature` `ModelFeatureTable` `ModelStatistics` `ModelUtility` `ModelType` `ModelReader` `ModelAlphaOptions` `ModelLightingOptions` `LightingModel` | 移植 / 改写 | M5 | 未开始 | — |
-| `Model/*PipelineStage`（约 35 个） | 改写 | M5 | 未开始 | 改为数据准备阶段，不拼字符串 |
-| `Model/ModelDrawCommand(s)` `ClassificationModelDrawCommand` `ModelRenderResources` `NodeRenderResources` `PrimitiveRenderResources` `StyleCommandsNeeded` | 改写 | M5 | 未开始 | 输出 RenderItem |
-| `Model/CustomShader*` `UniformType` `VaryingType` `TextureManager` `TextureUniform` | 改写 | M5 | 未开始 | 由 `ShaderMaterial` 与 `Material.onBeforeCompose` 承担；`TextureManager` 由 `Texture` 对象 + RHI 缓存替代 |
-| `Model/MaterialPipelineStage` | 改写 | M5 | 未开始 | glTF 材质 → `MeshPhysicalMaterial` / `MeshBasicMaterial` 映射 |
-| `Model/B3dmLoader` `I3dmLoader` `PntsLoader` `GeoJsonLoader` `B3dmParser` `I3dmParser` `PntsParser` `parseBatchTable` `BatchTable` `BatchTableHierarchy` `BatchTexture` | 移植 | M5 | 未开始 | — |
+| `ModelComponents` `AttributeType` `VertexAttributeSemantic` `InstanceAttributeSemantic` `AlphaMode` `Axis` `ModelAnimationLoop` `ModelAnimationState` | 移植 | M5 | 部分 | 运行时组件已有；动画状态机未做 |
+| `Model/Model` `ModelSceneGraph` `ModelRuntimeNode` `ModelRuntimePrimitive` `ModelNode` `ModelSkin` `ModelAnimation*` `ModelArticulation*` `ModelFeature` `ModelFeatureTable` `ModelStatistics` `ModelUtility` `ModelType` `ModelReader` `ModelAlphaOptions` `ModelLightingOptions` `LightingModel` | 移植 / 改写 | M5 | 部分 | `Model.fromGltfAsync` / `getNode` / `material` 覆写 / 实例矩阵；无 articulations / 动画播放 |
+| `Model/*PipelineStage`（约 35 个） | 改写 | M5 | 部分 | `GltfLoader` + `GpuMeshPrimitive` 数据准备，复用 `mesh.wgsl`，无 35 个阶段类 |
+| `Model/ModelDrawCommand(s)` `ClassificationModelDrawCommand` `ModelRenderResources` `NodeRenderResources` `PrimitiveRenderResources` `StyleCommandsNeeded` | 改写 | M5 | 部分 | 输出 `pass: "gbuffer"` RenderItem；无分类 |
+| `Model/CustomShader*` `UniformType` `VaryingType` `TextureManager` `TextureUniform` | 改写 | M5 | 未做 | 仍走 `Material.onBeforeCompose`；未覆盖 Cesium CustomShader 示例 |
+| `Model/MaterialPipelineStage` | 改写 | M5 | 完成 | `mapGltfMaterial` → `MeshPhysicalMaterial` / unlit `MeshBasicMaterial` |
+| `Model/B3dmLoader` `I3dmLoader` `PntsLoader` `GeoJsonLoader` `B3dmParser` `I3dmParser` `PntsParser` `parseBatchTable` `BatchTable` `BatchTableHierarchy` `BatchTexture` | 移植 | M5 | 部分 | b3dm / i3dm / pnts / cmpt / glb 解析；pnts 不画；无 GeoJson / BatchTexture |
 | `Model/ModelImagery*` `ImageryPipelineStage` `Imagery*` | 后置 | — | 未开始 | — |
-| `Model/PrimitiveOutlineGenerator` `PrimitiveOutlinePipelineStage` | 移植 | M5 | 未开始 | — |
-| `Cesium3DTileset` `Cesium3DTile` `Cesium3DTileContent*` `Cesium3DTilesetCache` `Cesium3DTilesetStatistics` `Cesium3DTilesetHeatmap` `Cesium3DTilesetMetadata` `Cesium3DTilesetTraversal` `Cesium3DTilesetBaseTraversal` `Cesium3DTilesetSkipTraversal` `Cesium3DTilesetMostDetailedTraversal` `Cesium3DTileOptimizations` `Cesium3DTileOptimizationHint` `Cesium3DTilePass` `Cesium3DTilePassState` `Cesium3DTileRefine` `Cesium3DTileColorBlendMode` `Cesium3DContentGroup` `preprocess3DTileContent` `Tileset3DTileContent` `Multiple3DTileContent` `Empty3DTileContent` `Composite3DTileContent` `Model3DTileContent` `TileBoundingVolume` `TileBoundingSphere` `TileOrientedBoundingBox` `TileBoundingS2Cell` `BoundingVolumeSemantics` `UrlTemplate3DTilesDataProvider` | 移植 | M5 | 未开始 | 渲染接口改写 |
-| `Implicit*`（9 文件） | 移植 | M5 | 未开始 | — |
-| `Metadata*` `StructuralMetadata` `PropertyTable` `PropertyTexture(Property)` `PropertyAttribute(Property)` `JsonMetadataTable` `parseStructuralMetadata` `parseFeatureMetadataLegacy` `find*Metadata` `getMetadata*` `PickedMetadataInfo` `MetadataPicking` `TileMetadata` `TilesetMetadata` `GroupMetadata` `ContentMetadata` | 移植 | M5 | 未开始 | — |
-| `Cesium3DTileStyle` `Cesium3DTileStyleEngine` `Expression` `ExpressionNodeType` `ConditionsExpression` `StyleExpression` | 移植 | M5 | 未开始 | jsep 依赖 |
-| `Cesium3DTileFeature` `Cesium3DTilePointFeature` `Cesium3DTileFeatureTable` `Cesium3DTileBatchTable` | 移植 | M5 | 未开始 | — |
-| `PointCloud` `PointCloudShading` `PointCloudEyeDomeLighting` `TimeDynamicPointCloud` | 改写 | M5 | 未开始 | EDL 作为后处理阶段 |
-| `createGooglePhotorealistic3DTileset` `createOsmBuildingsAsync` | 移植 | M5 | 未开始 | — |
+| `Model/PrimitiveOutlineGenerator` `PrimitiveOutlinePipelineStage` | 移植 | M5 | 未做 | — |
+| `Cesium3DTileset` `Cesium3DTile` `Cesium3DTileContent*` `Cesium3DTilesetCache` `Cesium3DTilesetStatistics` `Cesium3DTilesetHeatmap` `Cesium3DTilesetMetadata` `Cesium3DTilesetTraversal` `Cesium3DTilesetBaseTraversal` `Cesium3DTilesetSkipTraversal` `Cesium3DTilesetMostDetailedTraversal` `Cesium3DTileOptimizations` `Cesium3DTileOptimizationHint` `Cesium3DTilePass` `Cesium3DTilePassState` `Cesium3DTileRefine` `Cesium3DTileColorBlendMode` `Cesium3DContentGroup` `preprocess3DTileContent` `Tileset3DTileContent` `Multiple3DTileContent` `Empty3DTileContent` `Composite3DTileContent` `Model3DTileContent` `TileBoundingVolume` `TileBoundingSphere` `TileOrientedBoundingBox` `TileBoundingS2Cell` `BoundingVolumeSemantics` `UrlTemplate3DTilesDataProvider` | 移植 | M5 | 部分 | 基础遍历 / LRU / 内容 / 包围体已落地；无 skip / most-detailed / heatmap / S2 |
+| `Implicit*`（9 文件） | 移植 | M5 | 部分 | 坐标 / Morton / Hilbert / 位流 / URI 模板；**无 subtree 加载展开** |
+| `Metadata*` `StructuralMetadata` `PropertyTable` `PropertyTexture(Property)` `PropertyAttribute(Property)` `JsonMetadataTable` `parseStructuralMetadata` `parseFeatureMetadataLegacy` `find*Metadata` `getMetadata*` `PickedMetadataInfo` `MetadataPicking` `TileMetadata` `TilesetMetadata` `GroupMetadata` `ContentMetadata` | 移植 | M5 | 部分 | 最小 `parseMetadataSchema`；无 property texture / 拾取元数据 |
+| `Cesium3DTileStyle` `Cesium3DTileStyleEngine` `Expression` `ExpressionNodeType` `ConditionsExpression` `StyleExpression` | 移植 | M5 | 部分 | 最小 `Expression`（`color('#rrggbb')` / `vec4` / `${prop} > n`）；无 jsep |
+| `Cesium3DTileFeature` `Cesium3DTilePointFeature` `Cesium3DTileFeatureTable` `Cesium3DTileBatchTable` | 移植 | M5 | 部分 | Feature + batch table；无点要素 / BatchTexture |
+| `PointCloud` `PointCloudShading` `PointCloudEyeDomeLighting` `TimeDynamicPointCloud` | 改写 | M5 | 未做 | pnts 只解析不画；EDL 留后处理 |
+| `createGooglePhotorealistic3DTileset` `createOsmBuildingsAsync` | 移植 | M5 | 部分 | API 已接 ion 2275207 / 96188；示例用本地盒子 fixture |
 | `Vector3DTile*` `Geometry3DTileContent` `VectorGltf3DTileContent` `buildVectorGltfFromMVT` `decodeMVT` `MVTDataProvider` `Cesium3DTileVectorFeature` | 后置 | — | 未开始 | 矢量瓦片 |
 | `GaussianSplat*` `Cesium3DTilesVoxelProvider` `Voxel*` `SpatialNode` `KeyframeNode` `Megatexture` `buildVoxelDrawCommands` `buildVoxelCustomShader` `processVoxelProperties` | 后置 | — | 未开始 | 体素与高斯泼溅；WebGPU compute 有优势，后期专项 |
 | `I3S*` `ITwinData` | 后置 | — | 未开始 | — |
@@ -197,7 +197,7 @@ fork 内 `ThreeGeospatial/*` 与 `Extension/Ocean/*` 的 GLSL（大气、云、�
 | `createVerticesFromHeightmap` | 移植 | M2 / M3 | 完成（默认同步；注入 TaskProcessor 后走 Worker） |
 | `createVerticesFromQuantizedTerrainMesh` `upsampleQuantizedTerrainMesh` `incrementallyBuildTerrainPicker` | 移植 | M3 | 部分（upsample 改高度图；Picker 无增量 BVH） |
 | `createVerticesFromCesium3DTilesTerrain` `upsampleVerticesFromCesium3DTilesTerrain` | 移植 | M3（可选） | 未开始 |
-| `decodeDraco` `transcodeKTX2` | 移植 | M5 | 未开始 |
+| `decodeDraco` `transcodeKTX2` | 移植 | M5 | 未做 | Draco 遇扩展抛错；KTX2 占位白图 |
 | `createGeometry` `combineGeometry` `create*Geometry`（约 30 个） | 移植 | M9 | 未开始 |
 | `createVectorTile*` `decodeI3S` `decodeGoogleEarthEnterprisePacket` | 后置 | — | 未开始 |
 | `gaussianSplatSorter` `gaussianSplatTextureGenerator` | 后置 | — | 未开始 |

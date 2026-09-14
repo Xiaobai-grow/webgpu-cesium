@@ -112,4 +112,4 @@ WGSL 本身没有 include / 宏。组合器是一个纯字符串处理器（放�
 - [x] M0：自研组合器最小子集已覆盖三角形与清屏（2026-09-13）：`#import`、`#if / #elif / #else / #endif`、去注释、`sourceMap`、`hash`。
 - [x] M2：组合器补 `override` 原样透传与顶层符号重名检查（2026-09-13）。地形着色器为单层图集 + `layerIndex == 0xffffffffu` 无影像，未用 `override` 层数，故只有 1 条 pipeline。`wgsl_reflect` 仍未引入。`#import` 选择性导入未做。
 - [x] M4：`FrameUniforms` 464 字节（2026-09-13），远小于 64 KB。大气 LUT 在 lighting/sky 的 group 1，不进 group 0。仍手写偏移，单测锁定成员顺序。
-- [ ] M5：Model 管线阶段的「接口点」设计能否同时支持内部阶段与用户自定义着色器。
+- [x] M5：Model 未做成 35 个 `*PipelineStage` 字符串拼接（2026-09-14）：`GltfLoader` 做数据准备，图元复用 `materials/mesh.wgsl` 与 M4 的七个 `HOOK_*`。用户自定义仍走 `Material.onBeforeCompose`；未验证能否覆盖 Cesium `CustomShader` 全示例（留 M9）。

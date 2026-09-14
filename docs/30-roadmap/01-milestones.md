@@ -65,7 +65,7 @@ M3 与 M4 可并行；M5 依赖 M4 的 RenderItem / 材质接口稳定；M7 / M8
 
 ## M4 Render Graph、Reverse-Z / RTE 落地、延迟光照、大气与天体
 
-- **状态**：完成（2026-09-13，分支 `feat/m4-lighting-atmosphere`，未合并 `main`）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
+- **状态**：完成（2026-09-13，已合并 `main`，PR #5）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
 - **目标**：完整帧图；G-buffer + 延迟光照；Hillaire 大气；太阳 / 月亮 / 星空由时间驱动；空气透视替代雾。
 - **范围**：Render Graph 完整实现（编译、别名、调试导出）、G-buffer 布局、`FrameUniforms` 定型、PBR 光照函数、IBL（天空生成）、Hillaire 四 LUT compute、天空 pass、日盘 / 月盘 / 星表、`SunLight` / `DirectionalLight`、`EnvironmentState`、自动曝光（简版）、Reinhard / ACES 色调映射（简版，完整版 M6）、地形写 G-buffer、高低位 RTE 模块（为 M9 图元准备）、**材质系统基础**：`Material` / `Texture` 基类、`MeshBasicMaterial`、`MeshStandardMaterial`、`MeshPhysicalMaterial`（供 M5 glTF 映射）、`MaterialOutput` 契约、group 2 反射布局、`onBeforeCompose` 接口点、一个测试用球体 / 立方体图元验证材质。
 - **不做**：阴影、TAA、Bloom、云、线 / 点 / 精灵 / Shader 材质。
@@ -74,6 +74,7 @@ M3 与 M4 可并行；M5 依赖 M4 的 RenderItem / 材质接口稳定；M7 / M8
 
 ## M5 glTF、Model、3D Tiles
 
+- **状态**：完成（2026-09-14，分支 `feat/m5-3dtiles-gltf`，未合并 `main`）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
 - **目标**：glTF 2.0 全量加载与渲染；3D Tiles 1.0 / 1.1 数据集（含隐式瓦片、元数据、样式）在延迟管线中渲染。
 - **范围**：`GltfPipeline/*`、`GltfLoader` 系列、`ResourceCache`、`ModelComponents`、`ModelSceneGraph`、管线阶段（重写为数据准备）、glTF 材质 → `MeshPhysicalMaterial` / `MeshBasicMaterial` 映射（全部 `KHR_materials_*`）、`model.material` 与 `tileset.materialOverride` 覆写钩子、`CompressedTexture`（KTX2）、蒙皮 / 变形 / 动画、实例化、Draco / KTX2 / meshopt Worker、`Cesium3DTileset` 系列、遍历、缓存、隐式瓦片、元数据、样式、要素、`B3dm / I3dm / Pnts / Composite` 内容、点云着色、`createGooglePhotorealistic3DTileset`、`IonResource`、Model 拾取 pass 与要素拾取（异步）。
 - **不做**：分类、裁剪平面 / 多边形、`ModelImagery`、矢量瓦片、高斯泼溅、I3S、ITwin。

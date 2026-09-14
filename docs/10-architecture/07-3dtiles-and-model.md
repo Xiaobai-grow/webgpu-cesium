@@ -20,6 +20,8 @@
 
 ### 2. 重写的部分：Model 渲染管线
 
+M5 落地（2026-09-14）：未建约 35 个 `*PipelineStage` 类。`GltfLoader` 做数据准备，`GpuMeshPrimitive` 复用 M4 `materials/mesh.wgsl` + group 0/1/2/3 写 G-buffer。`BLEND` / `transmission > 0` 图元跳过（无前向透明 pass）。隐式瓦片有坐标 / Morton，无 subtree 展开。`pnts` 只解析不画。
+
 Cesium 的 `Model` 用一串「管线阶段」（`*PipelineStage`）动态拼装 GLSL 与 uniform，最后产出 `ModelDrawCommand`。本项目保留「阶段」概念作为**数据准备**，但着色器不再由阶段字符串拼接，而是由阶段设置 **defines / override / 绑定**，最终交给组合器：
 
 ```mermaid
@@ -70,7 +72,7 @@ flowchart LR
 
 ## 待验证
 
-- [ ] M5：默认纹理绑定 vs 条件编译对 pipeline 数与性能的影响，用一个城市级 tileset 实测。
-- [ ] M5：变形目标用 storage buffer 的性能是否优于属性方案。
-- [ ] M5：Draco Worker 解码结果直接 `writeBuffer` 的路径是否需要额外拷贝。
+- [x] M5：默认 1×1 纹理 + `HAS_MAP` / `HAS_NORMAL_MAP` defines（2026-09-14）：与 M4 Mesh 相同，本地四盒 tileset / 三模型示例各 1 条 mesh pipeline，城市级 tileset 的 pipeline 数与带宽未测。
+- [x] M5：变形目标未走 storage（2026-09-14）：只渲染 bind pose；未做属性 vs storage 对比。
+- [x] M5：Draco 未接线（2026-09-14）：遇 `KHR_draco_mesh_compression` 抛错；无 Worker `writeBuffer` 路径。
 - [ ] M8：合批到共享顶点池对流式加载 / 卸载的内存碎片处理。

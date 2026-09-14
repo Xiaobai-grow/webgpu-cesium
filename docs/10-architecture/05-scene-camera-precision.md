@@ -84,4 +84,4 @@
 - [x] M2：Camera 视图平移为 0 + RTE 高低位（2026-09-13，`Camera.test.ts` / `FrameUniforms.test.ts`）；深度 `depth32float` + `greater` + clear 0。高空默认必须天底（`-PI/2`），`-PI/4` 会看向太空导致 0 级瓦片被视锥剔除。未做 100 m 录屏抖动对比，也未在多 GPU 上比 `far=1e9` 与无穷远。
 - [x] M3：真地形 Reverse-Z / RTE（2026-09-13）：高度图 / 量化网格 / 填充网格沿用 M2 `depth32float` + `greater` + 每瓦片 48 字节 RTE uniform。hello-terrain 山体可见、非黑屏。未做 100 m 贴地 z-fighting 专项，也未测成千瓦片 RTE 成本（低空瓦片数仍远低于千级）。
 - [ ] M3 / M9：贴地几何的 `depthBias` 参数标定（M3 无贴地图元，顺延 M9）。
-- [ ] M5：`pickPosition` 读回延迟（一帧还是两帧），是否需要「预测式」同步 API。
+- [x] M5：未做 GPU `pickPosition` 深度读回（2026-09-14）：`Scene.pickAsync` 用 CPU 包围球打 Model / 选中瓦片，同步返回 `Promise`。读回延迟与预测式同步 API 未测，留 M9。

@@ -2,6 +2,18 @@
 
 按日期倒序。标签：`[对齐]` `[决策]` `[变更]` `[推翻]` `[完成]` `[阻塞]` `[风险]`。
 
+## 2026-09-14（第八轮：M5）
+
+- [完成] M5 落地于分支 `feat/m5-3dtiles-gltf`（未合并 `main`）：新建 `@webgpu-cesium/tiles`（glTF/GLB、`mapGltfMaterial`、`Model`、`Cesium3DTileset` 遍历 / LRU / b3dm·i3dm·pnts·cmpt、最小样式与隐式坐标）、`Scene.models` / `tilesets` / `pickAsync`、示例 `hello-gltf` / `hello-3dtiles`。M4 已在此前合并 `main`（PR #5）。
+- [完成] 验证：`pnpm build` / `lint` / `typecheck` 通过；`pnpm test` 42 文件 227 用例（M0–M4 未破）。本机 Chrome `navigator.gpu` 可用。hello-gltf 可见铜 / 黄 unlit / 绿 Basic 覆写三盒；hello-3dtiles 可见四栋彩色盒子（非黑屏）。
+- [决策] 不上 `wgsl_reflect`（沿用 M4）。透明 / transmission 不进 G-buffer，图元跳过，不开前向 pass。
+- [决策] 示例与 e2e 用程序生成盒子 + data URI，不提交巨大倾斜摄影，不打外网 tileset。
+- [决策] `tiles` 自备 `FrameContext`，不依赖 `scene`；`Scene.frameState` 结构满足。聚合包不 star-export 两边的 `TileBoundingRegion`：tiles 侧导出为 `TilesetTileBoundingRegion`。
+- [变更] 无 24 文件 GltfPipeline / 35 个 `*PipelineStage`：一体 `GltfLoader` + `GpuMeshPrimitive` 复用 `materials/mesh.wgsl`。
+- [变更] 城市 fixture 包围体改局部系（根 ENU，子平移）。曾把 ECEF 球心再乘 ENU，遍历视锥全剔导致 hello-3dtiles 黑屏。
+- [变更] Draco 遇扩展抛错；KTX2 占位 1×1 白 `CompressedTexture`；pnts 只解析；隐式无 subtree 展开；样式无 jsep。
+- [风险] 未做 glTF Sample Assets 全量对照 three.js；未测城市级 ion OSM / Google 60fps；无 GPU 要素拾取 / 点云 EDL / 蒙皮播放。外网 tileset 仍需 token。
+
 ## 2026-09-13（第七轮：M4）
 
 - [完成] M4 落地于分支 `feat/m4-lighting-atmosphere`（未合并 `main`）：Render Graph 别名与 `toJson`/`toMermaid`、G-buffer / 延迟 PBR、Hillaire 四 LUT、日月星、`EnvironmentState`、ACES/Reinhard、`Material`/`Texture`/`Mesh*`、`atmosphere-earth` 与 `material-spheres`。M3（含 mars3d）已在此前合并 `main`（PR #4）。

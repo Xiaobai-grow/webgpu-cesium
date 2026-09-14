@@ -205,7 +205,7 @@ flowchart LR
 ## 待验证
 
 - [x] M4：材质 group 2 手写 80 字节整块重写（2026-09-13），**不上 `wgsl_reflect`**。`onBeforeCompose` 七个 `HOOK_*` 接口点已留。每网格每帧 `writeBuffer` 80 + 80 字节，20 个材质球可忽略。
-- [ ] M5：glTF Sample Assets 全量映射到 `MeshPhysicalMaterial` 的视觉对比（与 three.js WebGPURenderer 截图对照）。
-- [ ] M5：默认纹理 + defines 跳过采样 vs 纯 defines 的 pipeline 数与带宽对比。
+- [x] M5：glTF → `MeshPhysicalMaterial` / `MeshBasicMaterial`（unlit）映射已落地（2026-09-14），含 `KHR_materials_*` 字段写入类属性；未做 glTF Sample Assets 全量截图，也未与 three.js WebGPURenderer 对照。
+- [x] M5：缺失纹理绑 1×1 默认图 + defines 跳过采样（2026-09-14）；未做纯 defines 带宽对比。
 - [ ] M9：`LineBasicMaterial` 屏幕空间挤出在 Reverse-Z 与 RTE 下的接缝与抗锯齿；`SpriteMaterial` 对齐 Billboard 全部选项后的性能。
 - [ ] M9：`onBeforeCompose` 七个接口点是否足以表达 Cesium `CustomShader` 的全部示例。

@@ -1,10 +1,10 @@
 # 进度
 
-更新日期：2026-09-13
+更新日期：2026-09-14
 
 ## 当前阶段
 
-**M4 完成（分支 `feat/m4-lighting-atmosphere`，未合并 `main`）。** 材质基类、G-buffer / 延迟光照、Hillaire 大气、日月星、ACES/Reinhard。示例：`atmosphere-earth`（正午 / 日落 / 夜晚）、`material-spheres`。M3（含 mars3d）已合并 `main`（PR #4）。
+**M5 完成（分支 `feat/m5-3dtiles-gltf`，未合并 `main`）。** `@webgpu-cesium/tiles`：glTF / GLB → `MeshPhysicalMaterial` / `MeshBasicMaterial`，`Model` 与 `Cesium3DTileset` 走同一 G-buffer。示例：`hello-gltf`、`hello-3dtiles`（本地程序盒子 fixture）。M4 已合并 `main`（PR #5）。
 
 ## 里程碑状态
 
@@ -16,8 +16,8 @@
 | M1 core 移植 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #2） |
 | M2 球出现 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #3） |
 | M3 地形 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #4，含 mars3d） |
-| M4 Render Graph / 光照 / 大气 | 完成 | 2026-09-13 | 2026-09-13 | 分支 `feat/m4-lighting-atmosphere`；未开 PR |
-| M5 glTF / 3D Tiles | 未开始 | — | — | — |
+| M4 Render Graph / 光照 / 大气 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #5） |
+| M5 glTF / 3D Tiles | 完成 | 2026-09-14 | 2026-09-14 | 分支 `feat/m5-3dtiles-gltf`；未开 PR |
 | M6 阴影 / 后处理 / TAA / HDR | 未开始 | — | — | — |
 | M7 云 / 天气 / 海洋 | 未开始 | — | — | ADR-0009 需先确认 |
 | M8 GPU-driven / 虚拟纹理 | 未开始 | — | — | — |
@@ -118,6 +118,25 @@
 | 4.10 | 示例 atmosphere-earth / material-spheres | 完成 | 本机 WebGPU 截图 | 未与 Cesium SkyAtmosphere 对比 |
 | 4.11 | `GpuTimer` | 部分 | 类已实现 | 默认不接入帧图 |
 
+## M5 清单（自列；无独立 checklist 文件）
+
+| # | 任务 | 状态 | 已验证 | 未验证 / 备注 |
+| --- | --- | --- | --- | --- |
+| 5.1 | 新建 `@webgpu-cesium/tiles` 并接入 workspace | 完成 | lint 禁依赖 scene；`pnpm build` 产出 dist | 不依赖 scene，`FrameContext` 在 tiles |
+| 5.2 | glTF / GLB 解析 + accessor / ResourceCache | 完成 | Node：`gltf.test.ts` | 无独立 24 文件 GltfPipeline |
+| 5.3 | `KHR_materials_*` → Physical / unlit Basic | 完成 | 字段写入类属性；hello-gltf 三盒可辨 | 未做 Sample Assets 全量截图 vs three.js |
+| 5.4 | `Model.fromGltfAsync` G-buffer + `model.material` | 完成 | `scene-gpu` `model.render.test.ts`；hello-gltf `data-gltf-ready` | 透明图元跳过，无前向 pass |
+| 5.5 | Draco / KTX2 / meshopt Worker | 部分 | Draco 抛错；KTX2 1×1 白图 | 无 Worker 解码 |
+| 5.6 | 蒙皮 / 变形 / 动画 | 部分 | 解析 skins/animations | 只画 bind pose，无 GPU 蒙皮 |
+| 5.7 | `Cesium3DTileset` 遍历 / SSE / LRU | 完成 | Node 选中 4 叶；hello-3dtiles | 无 skip / most-detailed |
+| 5.8 | b3dm / i3dm / pnts / cmpt / glb 内容 | 部分 | 解析 + glb/b3dm 绘制 | pnts 不画；无 GeoJson |
+| 5.9 | 样式 / 要素 / 元数据 | 部分 | `color()` / `${prop} > n`；Feature + batch | 无 jsep；元数据仅 schema |
+| 5.10 | 隐式瓦片 | 部分 | Morton / Hilbert / 坐标 / 位流单测 | **无 subtree 加载展开** |
+| 5.11 | `tileset.materialOverride` / ion 工厂 | 部分 | 覆写钩子；`createOsmBuildingsAsync` / Google API | 示例不打外网 ion |
+| 5.12 | 拾取 | 部分 | `Scene.pickAsync` CPU 包围球 | 无 GPU 要素 pass；`pickPosition` 留 M9 |
+| 5.13 | 示例 hello-gltf / hello-3dtiles | 完成 | 本机 WebGPU 三盒 / 四栋可见，非黑屏 | e2e 本地 fixture；无城市级 60fps |
+| 5.14 | 点云着色 + EDL | 未做 | — | pnts 只解析 |
+
 ## 进行中
 
 无。
@@ -128,9 +147,9 @@
 
 ## 下一步
 
-1. 审阅 `feat/m4-lighting-atmosphere`，**不要合并 main**，按需开 PR。
-2. M5：glTF → `MeshPhysicalMaterial` / `MeshBasicMaterial`，3D Tiles 进延迟管线。
-3. 补 400 km 飞行能量连续；ion 山区截图；贴地 `depthBias`；顶点法线 stride。
+1. 审阅 `feat/m5-3dtiles-gltf`，**不要合并 main**，按需开 PR。
+2. M6：CSM / TAA / Bloom / GTAO / 完整色调映射 / HDR。
+3. 补 Draco/KTX2 Worker、透明前向 pass、隐式 subtree、点云 EDL、glTF Sample Assets 对照、城市级 ion 60fps。
 
 ## 待验证项汇总（跨文档）
 
@@ -169,5 +188,13 @@ M4（已关闭，结论见各文档「待验证」节）：
 - [x] LUT 尺寸 / 相对曝光 / 简版星表（[08](../10-architecture/08-atmosphere-sky-celestial.md)）；400 km 飞测未做
 - [x] 全屏片元延迟光照（[10](../10-architecture/10-lighting-shadow-postfx.md)）
 - [x] 材质 group 2 手写整块（[12](../10-architecture/12-material-system.md)）
+
+M5（已关闭，结论见各文档「待验证」节）：
+
+- [x] `tiles` 不依赖 `scene`：`FrameContext` 在 tiles（[02](../10-architecture/02-packages.md)）
+- [x] Model 复用 `mesh.wgsl` HOOK_*，无 35 个 PipelineStage（[04](../10-architecture/04-shader-system.md)）
+- [x] 默认 1×1 + defines；Draco / morph 未接线（[07](../10-architecture/07-3dtiles-and-model.md)）
+- [x] glTF → Physical / unlit Basic；未做 Sample Assets 对照（[12](../10-architecture/12-material-system.md)）
+- [x] `pickAsync` CPU 包围球，无 GPU `pickPosition`（[05](../10-architecture/05-scene-camera-precision.md)）
 
 其余见各架构文档「待验证」节。
