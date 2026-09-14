@@ -9,6 +9,7 @@ import {
   CustomHeightmapTerrainProvider,
   GeographicTilingScheme,
   Ion,
+  JulianDate,
   TaskProcessor,
   setTerrainTaskProcessors,
   type TerrainProvider,
@@ -113,6 +114,7 @@ export async function run(canvas: HTMLCanvasElement): Promise<ExampleCleanup> {
   if (useGrid) {
     globe.imageryLayers.addImageryProvider(new GridImageryProvider({ tilingScheme }))
   }
+  viewer.scene.clock.currentTime = JulianDate.fromIso8601("2024-06-21T12:00:00Z")
   viewer.scene.screenSpaceCameraController.enableCollisionDetection = true
   const applyView = (name: string): void => {
     if (name === "space") {

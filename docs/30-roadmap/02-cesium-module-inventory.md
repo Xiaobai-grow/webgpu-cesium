@@ -104,15 +104,15 @@
 | `View` `SceneFramebuffer` `PickDepth` `PickFramebuffer` `PickDepthFramebuffer` `Picking` `SnapFramebuffer` `Snapping` `PlanarFillIdFramebuffer` `OpaqueDepthTextureHandle` | 改写 | M5 / M9 | 未开始 | 合并为 Render Graph 的 `PickPass` + `ReadbackQueue` |
 | `SceneMode` `SceneTransitioner` `MapMode2D` `FrustumCommands` `DerivedCommand` `DepthPlane` `OIT` `ViewportQuad` `JobScheduler` `JobType` | 弃用 | — | 已弃用 | `OIT` 的权重函数移植到 WBOIT 模块；`JobScheduler` 由 RHI 上传预算替代 |
 | `CreditDisplay` | 移植 | M2 | 完成 | 文本归属；挂在 Viewer 容器 |
-| `FrameRateMonitor` `PerformanceDisplay` `DebugInspector` | 改写 | M2 | 进行中 | `PerformanceDisplay` 简版；timestamp-query 留 M4 |
-| `Light` `DirectionalLight` `SunLight` | 移植 | M4 | 未开始 | — |
-| `Fog` `Atmosphere` `SkyAtmosphere` `DynamicAtmosphereLightingType` `Sun` `Moon` `SkyBox` `SunPostProcess` | 改写 | M4 | 未开始 | 由 `environment` 包的 Hillaire 大气 / 天体替代；保留 `Scene.fog` / `Scene.skyAtmosphere` 等属性名作为开关 |
-| `ImageBasedLighting` `SpecularEnvironmentCubeMap` `DynamicEnvironmentMapManager` `BrdfLutGenerator` | 改写 | M4 | 未开始 | compute 生成 |
+| `FrameRateMonitor` `PerformanceDisplay` `DebugInspector` | 改写 | M2 | 进行中 | `PerformanceDisplay` 简版；`GpuTimer` 已实现，默认不接入帧图 |
+| `Light` `DirectionalLight` `SunLight` | 移植 | M4 | 完成 | 类名保留 Cesium；实现放 `renderer` |
+| `Fog` `Atmosphere` `SkyAtmosphere` `DynamicAtmosphereLightingType` `Sun` `Moon` `SkyBox` `SunPostProcess` | 改写 | M4 | 完成 | `environment` Hillaire + 日/月/星；`Scene.fog` / `Scene.skyAtmosphere.show` 作开关；无 NASA 月面纹理 |
+| `ImageBasedLighting` `SpecularEnvironmentCubeMap` `DynamicEnvironmentMapManager` `BrdfLutGenerator` | 改写 | M4 | 部分 | 32²×6 辐照度阵面，非 64² + 5 级预滤波 |
 | `ShadowMap` `ShadowMapShader` `ShadowMode` | 改写 | M6 | 未开始 | CSM 重做；`ShadowSettings` 保留选项名 |
 | `PostProcessStage*` `Tonemapper` `AutoExposure` `PostProcessStageLibrary` | 改写 | M6 | 未开始 | 阶段 API 概念保留 |
 | `ClippingPlane(Collection)` `ClippingPolygon(Collection)` `getClippingFunction` `getClipAndStyleCode` | 改写 | 后置 | 未开始 | — |
 | `Splitter` `SplitDirection` | 移植 | M2 | 未开始 | — |
-| `Appearance` `MaterialAppearance` `PerInstanceColorAppearance` `EllipsoidSurfaceAppearance` `PolylineColorAppearance` `PolylineMaterialAppearance` `DebugAppearance` `ShadowVolumeAppearance` `Material`（Fabric） | 改写为 three.js 风格材质 | M4 / M9 | 未开始 | 见 [12-material-system.md](../10-architecture/12-material-system.md) 与 ADR-0010；Fabric 内置材质类型（Grid / Stripe / Checkerboard / Fade / Water / ElevationRamp / Contour / SlopeRamp / AspectRamp / PolylineArrow / Dash / Glow / Outline / Image）以子类等价物提供 |
+| `Appearance` `MaterialAppearance` `PerInstanceColorAppearance` `EllipsoidSurfaceAppearance` `PolylineColorAppearance` `PolylineMaterialAppearance` `DebugAppearance` `ShadowVolumeAppearance` `Material`（Fabric） | 改写为 three.js 风格材质 | M4 / M9 | 进行中 | M4 已落地 `Material` / `MeshBasic` / `MeshStandard` / `MeshPhysical`；线 / 点 / 精灵 / Shader / Fabric 等价物留 M9 |
 | `BlendEquation` `BlendFunction` `BlendingState` `BlendOption` `CullFace` `DepthFunction` `StencilConstants` `StencilFunction` `StencilOperation` | 弃用 | — | 已弃用 | 直接用 `GPU*` 枚举 |
 | `ThreeGeospatialController` | 弃用 | — | 已弃用 | fork 专有 |
 
@@ -212,16 +212,16 @@ M2：最小 `CesiumViewer`（画布挂载、Credit、性能条）。完整 `View
 | 模块 | 包 | 里程碑 | 状态 |
 | --- | --- | --- | --- |
 | `GpuDevice` `PipelineCache` `BindGroupLayoutCache` `SamplerCache` `ShaderModuleCache` | rhi | M0 | 完成 |
-| `ReadbackQueue` `GpuTimer` | rhi | M4 | 未开始 |
+| `ReadbackQueue` `GpuTimer` | rhi | M4 | 部分 | `GpuTimer` 已实现，默认关闭；`ReadbackQueue` 仍用 `copyTextureToBuffer` |
 | WGSL 组合器（`#import` / `#if`、规范化、sourceMap、hash）与内置模块 `builtin/constants.wgsl` `builtin/frame.wgsl` | shaders | M0 | 完成 |
-| WGSL 反射（`wgsl_reflect`） | shaders | M2 | 未开始 | M2 继续手写 FrameUniforms 偏移，单测锁定 `frame.wgsl` |
+| WGSL 反射（`wgsl_reflect`） | shaders | M2 / M4 | 未开始 | M4 仍手写 FrameUniforms 与材质 group 2 偏移 |
 | `RenderGraph`（最小：`addPass` / 资源句柄 / 导入 canvas / 裁剪 / 拓扑排序）、`RenderItem` 类型 | renderer | M0 | 完成 |
-| `RenderGraph` 瞬态资源别名、多队列、性能统计 | renderer | M4 | 未开始 |
+| `RenderGraph` 瞬态资源别名、多队列、性能统计 | renderer | M4 | 部分 | 别名 + `toJson` / `toMermaid` 已做；多队列未做 |
 | `FrameUniformsBuffer`（矩阵 + RTE 高低位 + 视口 / 时间） | renderer | M0 / M2 | 完成 | 偏移手写 |
-| `Material` `Texture` 基类，`MeshBasicMaterial` `MeshStandardMaterial` `MeshPhysicalMaterial`，`MaterialOutput` 契约，`onBeforeCompose` 接口点 | renderer / shaders | M4 | 未开始 |
+| `Material` `Texture` 基类，`MeshBasicMaterial` `MeshStandardMaterial` `MeshPhysicalMaterial`，`MaterialOutput` 契约，`onBeforeCompose` 接口点 | renderer / shaders | M4 | 完成 | group 2 手写 80 字节；`flipY` 默认 false |
 | `LineBasicMaterial` `LineDashedMaterial` `PointsMaterial` `SpriteMaterial` `ShaderMaterial` `ShadowMaterial` `MeshNormalMaterial` `MeshDepthMaterial`，GIS 扩展材质，`VideoTexture` `CanvasTexture` `DataTexture` 系列 | renderer | M9 | 未开始 |
-| `FrameUniforms` 完整填充器（相机矩阵与高低位）、`EnvironmentState` | renderer / scene | M2 / M4 | 进行中 | M2 已填矩阵与 RTE；`EnvironmentState` 留 M4 |
-| Hillaire 大气、`StarField`、月面渲染 | environment | M4 | 未开始 |
+| `FrameUniforms` 完整填充器（相机矩阵与高低位）、`EnvironmentState` | renderer / scene | M2 / M4 | 完成 | 464 字节；前 304 与 M2 相同 |
+| Hillaire 大气、`StarField`、月面渲染 | environment | M4 | 部分 | 四 LUT + 程序月盘；星表约 30 + 程序星，无 NASA 月面纹理 |
 | CSM、GTAO、TAA、Bloom、自动曝光、WBOIT | renderer | M6 | 未开始 |
 | `VolumetricClouds` `WeatherMapProvider` `WeatherSystem` `Ocean` | environment | M7 | 未开始 |
 | GPU-driven 剔除、Hi-Z、虚拟纹理、meshlet | renderer / tiles | M8 | 未开始 |

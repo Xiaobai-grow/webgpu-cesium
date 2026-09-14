@@ -130,5 +130,5 @@ flowchart LR
 - [x] M0（部分）：`PipelineCache` 键成本已粗测（2026-09-13，`rhi/src/caches/stableKey.test.ts`，Node 22 桌面）：典型 render pipeline 描述 → 稳定 JSON 键约 **6.7 µs / 次**，键长约 440 字符；GPU 对象（layout / module）用 `WeakMap` 分配递增 id 参与键，不做深遍历。结论：每帧对几百个 RenderItem 直接算键仍在 1–2 ms 量级，M2 起 RenderItem 应持有已解析的 `pipelineKey`（只在描述变化时重算），不要每帧重算。
 - [x] M2：`RenderItem.pipelineKey` 由 `GlobeSurfaceTileProvider` 在构造时解析并复用（2026-09-13）。对象数据为每瓦片 48 字节 uniform（非动态偏移 / 非 storage）。国家尺度约 64 个 RenderItem 时示例站 CPU ≈ 1.5 ms。几百项 < 1 ms 的专项剖析未做，顺延低空密集瓦片时再测。
 - [x] M3：对象数据仍用每瓦片 48 字节 uniform（2026-09-13）：未改动态偏移 / storage 实例数组；真地形未触发「必须换路径」的 CPU 成本。对比与默认选型顺延低空密集瓦片或 M4 G-buffer。
-- [ ] M4：瞬态资源别名在分辨率变化（窗口缩放、像素比）时的重建策略（M3 未做 Render Graph 别名）。
-- [ ] M4：timestamp-query 在主流 GPU 上的精度与开销，是否默认开启。
+- [x] M4：瞬态资源别名（2026-09-13）：`RenderGraph` 按 `(format, usage, sampleCount)` 池化，分辨率变化时 `reset` 丢弃池；`toJson` 记录别名。窗口缩放走 `Scene.resize` → 新尺寸 `createTexture`。
+- [x] M4：timestamp-query（2026-09-13）：`GpuTimer` 已实现，**默认不接入帧图**（开销未在集显上测完，不作为性能面板默认项）。

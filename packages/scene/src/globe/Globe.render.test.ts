@@ -8,6 +8,7 @@ import {
   CustomHeightmapTerrainProvider,
   EllipsoidTerrainProvider,
   GeographicTilingScheme,
+  JulianDate,
   WebMercatorTilingScheme,
 } from "@webgpu-cesium/core"
 import { hasNonBlackPixels } from "@webgpu-cesium/renderer"
@@ -45,6 +46,7 @@ describe.skipIf(!hasWebGpu)("Globe 渲染回读", () => {
     })
     globe.imageryLayers.addImageryProvider(new GridImageryProvider({ tilingScheme }))
     const scene = new Scene({ canvas, device, globe })
+    scene.clock.currentTime = JulianDate.fromIso8601("2024-06-21T12:00:00Z")
     scene.camera.setView({
       destination: Cartesian3.fromDegrees(0, 0, 2.0e7),
       orientation: { heading: 0, pitch: -CesiumMath.PI_OVER_TWO, roll: 0 },
@@ -108,6 +110,7 @@ describe.skipIf(!hasWebGpu)("Globe 渲染回读", () => {
     })
     globe.imageryLayers.addImageryProvider(new GridImageryProvider({ tilingScheme }))
     const scene = new Scene({ canvas, device, globe })
+    scene.clock.currentTime = JulianDate.fromIso8601("2024-06-21T12:00:00Z")
     scene.camera.setView({
       destination: Cartesian3.fromDegrees(0, 0, 2.0e7),
       orientation: { heading: 0, pitch: -CesiumMath.PI_OVER_TWO, roll: 0 },

@@ -1,12 +1,9 @@
 /**
- * 最小 Render Graph（M0）。
+ * Render Graph（M4）：编译、瞬态别名、调试导出；render / compute / copy。
  *
- * 声明阶段（每帧）：`importTexture` / `createTexture` 得到句柄，`addPass(name, setup, execute)` 声明读写。
- * 编译阶段：裁剪无人读取且不写外部资源的 pass → 按依赖拓扑排序（声明顺序为稀疏排序的稳定基准）。
- * 执行阶段：一个 GPUCommandEncoder；每个 pass 一个 render pass；`queue.submit`。
- *
- * M0 不做：瞬态资源别名、compute / copy / readback pass、编译结果缓存、timestamp 包裹。
- * 见 docs/10-architecture/03-rhi-and-render-graph.md 第 2 节。
+ * 声明阶段（每帧）：`importTexture` / `createTexture` 得到句柄，`addPass` / `addComputePass` / `addCopyPass`。
+ * 编译阶段：裁剪 → 拓扑排序 → 生命区间 → 同格式同尺寸别名。
+ * 执行阶段：一个 GPUCommandEncoder；分辨率变化时销毁未再使用的池纹理。
  */
 import { DeveloperError } from "@webgpu-cesium/core"
 import { type GpuDevice, makeLabel } from "@webgpu-cesium/rhi"
@@ -14,9 +11,16 @@ import { isDrawIndexed, type RenderItem } from "../RenderItem"
 import type {
   ColorAttachmentOptions,
   CompiledGraph,
+  ComputePassContext,
+  ComputePassExecute,
+  CopyPassContext,
+  CopyPassExecute,
   DepthAttachmentOptions,
+  GraphAliasInfo,
+  GraphJson,
   PassBuilder,
   PassExecute,
+  PassKind,
   PassSetup,
   RenderPassContext,
   TextureHandle,
@@ -52,10 +56,12 @@ interface DepthWrite {
 interface PassNode {
   index: number
   name: string
-  execute: PassExecute
+  kind: PassKind
+  execute: PassExecute | ComputePassExecute | CopyPassExecute
   reads: Set<number>
   colorWrites: ColorWrite[]
   depthWrite: DepthWrite | undefined
+  storageWrites: Set<number>
   hasSideEffect: boolean
 }
 
@@ -63,7 +69,7 @@ function makeHandle(id: number, name: string): TextureHandle {
   return { id, name } as unknown as TextureHandle
 }
 
-/** 瞬态纹理默认用途：RENDER_ATTACHMENT (0x10) | TEXTURE_BINDING (0x04)；用数值避免依赖全局 GPUTextureUsage */
+/** 瞬态纹理默认用途：RENDER_ATTACHMENT | TEXTURE_BINDING */
 const DEFAULT_TRANSIENT_USAGE = 0x10 | 0x04
 
 /** 瞬态纹理池键 */
@@ -71,20 +77,32 @@ function transientKey(descriptor: TransientTextureDescriptor): string {
   return [
     descriptor.width,
     descriptor.height,
+    descriptor.depthOrArrayLayers ?? 1,
     descriptor.format,
     descriptor.usage ?? DEFAULT_TRANSIENT_USAGE,
     descriptor.sampleCount ?? 1,
   ].join("|")
 }
 
+function descriptorOf(resource: Resource): TransientTextureDescriptor | undefined {
+  return resource.kind === "transient" ? resource.descriptor : undefined
+}
+
 export class RenderGraph {
+  /** 可选：包裹 timestamp-query（需设备 feature，默认关） */
+  enableTimestamps = false
+
   private resources: Resource[] = []
   private passes: PassNode[] = []
   private compiled: PassNode[] | undefined
   private culled: string[] = []
+  private lastHash: string | undefined
+  private aliases: GraphAliasInfo[] = []
+  private aliasSlotOf = new Map<number, string>()
 
-  /** 瞬态纹理池：跨帧复用（M0 无别名，按描述精确匹配） */
+  /** 瞬态纹理池：跨帧复用 */
   private readonly transientPool = new Map<string, GPUTexture[]>()
+  private readonly transientKeys = new WeakMap<GPUTexture, string>()
   private frameCounter = 0
 
   /** 导入外部纹理（例如 canvas 当前纹理）。每帧重新导入。 */
@@ -94,7 +112,7 @@ export class RenderGraph {
     return makeHandle(id, name)
   }
 
-  /** 声明瞬态纹理，执行时从池中取或创建 */
+  /** 声明瞬态纹理，执行时从池中取或创建（可与生命区间不重叠的同规格资源别名） */
   createTexture(name: string, descriptor: TransientTextureDescriptor): TextureHandle {
     const id = this.resources.length
     this.resources.push({ kind: "transient", name, descriptor: { ...descriptor } })
@@ -105,16 +123,49 @@ export class RenderGraph {
    * 声明一个 render pass。`setup` 立即执行以收集读写；`execute` 在 `execute()` 阶段调用。
    */
   addPass(name: string, setup: PassSetup, execute: PassExecute): void {
+    this.addTypedPass("render", name, setup, execute)
+  }
+
+  /**
+   * 声明 compute pass。
+   *
+   * @param name pass 名
+   * @param setup 读写
+   * @param execute dispatch
+   */
+  addComputePass(name: string, setup: PassSetup, execute: ComputePassExecute): void {
+    this.addTypedPass("compute", name, setup, execute)
+  }
+
+  /**
+   * 声明 copy pass。
+   *
+   * @param name pass 名
+   * @param setup 读写
+   * @param execute copyTextureToTexture 等
+   */
+  addCopyPass(name: string, setup: PassSetup, execute: CopyPassExecute): void {
+    this.addTypedPass("copy", name, setup, execute)
+  }
+
+  private addTypedPass(
+    kind: PassKind,
+    name: string,
+    setup: PassSetup,
+    execute: PassExecute | ComputePassExecute | CopyPassExecute,
+  ): void {
     if (this.passes.some((pass) => pass.name === name)) {
       throw new DeveloperError(`RenderGraph: pass "${name}" 重复声明`)
     }
     const node: PassNode = {
       index: this.passes.length,
       name,
+      kind,
       execute,
       reads: new Set(),
       colorWrites: [],
       depthWrite: undefined,
+      storageWrites: new Set(),
       hasSideEffect: false,
     }
     const builder: PassBuilder = {
@@ -133,6 +184,10 @@ export class RenderGraph {
         }
         node.depthWrite = { handle, options }
       },
+      writeStorage: (handle) => {
+        this.assertHandle(handle)
+        node.storageWrites.add(handle.id)
+      },
       sideEffect: () => {
         node.hasSideEffect = true
       },
@@ -143,17 +198,22 @@ export class RenderGraph {
   }
 
   /**
-   * 编译：裁剪 + 拓扑排序。可多次调用（幂等），`execute()` 会自动调用。
+   * 编译：裁剪 + 拓扑排序 + 别名。可多次调用（幂等），`execute()` 会自动调用。
    */
   compile(): CompiledGraph {
-    if (!this.compiled) {
+    const hash = this.declarationHash()
+    if (!this.compiled || this.lastHash !== hash) {
       const alive = this.cullPasses()
       this.compiled = this.sortPasses(alive)
       this.culled = this.passes.filter((pass) => !alive.has(pass)).map((pass) => pass.name)
+      this.assignAliases(this.compiled)
+      this.lastHash = hash
     }
     return {
       passes: this.compiled.map((pass) => pass.name),
       culled: this.culled,
+      hash,
+      aliases: this.aliases,
     }
   }
 
@@ -169,13 +229,22 @@ export class RenderGraph {
       label: makeLabel("RenderGraph", `frame-${String(frame)}`, PACKAGE_LABEL),
     })
 
-    // 本帧的视图缓存：句柄 id → 视图
     const views = new Map<number, GPUTextureView>()
+    const textures = new Map<number, GPUTexture>()
     const usedTransients: GPUTexture[] = []
+    const usedKeys = new Set<string>()
+    const resolveTexture = (handle: TextureHandle): GPUTexture => {
+      let texture = textures.get(handle.id)
+      if (!texture) {
+        texture = this.resolveTexture(gpu, handle, usedTransients, usedKeys, textures)
+        textures.set(handle.id, texture)
+      }
+      return texture
+    }
     const resolveView = (handle: TextureHandle): GPUTextureView => {
       let view = views.get(handle.id)
       if (!view) {
-        const texture = this.resolveTexture(gpu, handle, usedTransients)
+        const texture = resolveTexture(handle)
         view = texture.createView({
           label: makeLabel("TextureView", handle.name, PACKAGE_LABEL),
         })
@@ -185,11 +254,47 @@ export class RenderGraph {
     }
 
     for (const pass of passes) {
+      if (pass.kind === "compute") {
+        const passEncoder = encoder.beginComputePass({
+          label: makeLabel("ComputePass", pass.name, PACKAGE_LABEL),
+        })
+        const context: ComputePassContext = {
+          device,
+          encoder,
+          passEncoder,
+          passName: pass.name,
+          getTextureView: resolveView,
+          getTexture: resolveTexture,
+        }
+        try {
+          ;(pass.execute as ComputePassExecute)(context)
+        } finally {
+          passEncoder.end()
+        }
+        continue
+      }
+      if (pass.kind === "copy") {
+        const context: CopyPassContext = {
+          device,
+          encoder,
+          passName: pass.name,
+          getTexture: resolveTexture,
+        }
+        ;(pass.execute as CopyPassExecute)(context)
+        continue
+      }
       const descriptor = this.buildPassDescriptor(pass, resolveView)
       const passEncoder = encoder.beginRenderPass(descriptor)
-      const context = this.createContext(device, encoder, passEncoder, pass, resolveView)
+      const context = this.createContext(
+        device,
+        encoder,
+        passEncoder,
+        pass,
+        resolveView,
+        resolveTexture,
+      )
       try {
-        pass.execute(context)
+        ;(pass.execute as PassExecute)(context)
       } finally {
         passEncoder.end()
       }
@@ -197,10 +302,10 @@ export class RenderGraph {
 
     gpu.queue.submit([encoder.finish()])
 
-    // 归还瞬态纹理
     for (const texture of usedTransients) {
       this.releaseTransient(texture)
     }
+    this.evictUnusedPool(usedKeys)
     this.reset()
   }
 
@@ -210,6 +315,9 @@ export class RenderGraph {
     this.passes = []
     this.compiled = undefined
     this.culled = []
+    this.lastHash = undefined
+    this.aliases = []
+    this.aliasSlotOf.clear()
   }
 
   /** 释放瞬态池中的所有纹理 */
@@ -229,12 +337,17 @@ export class RenderGraph {
     const lines = ["flowchart LR"]
     for (const pass of this.passes) {
       const isAlive = compiled.passes.includes(pass.name)
-      lines.push(`  ${pass.name}["${pass.name}${isAlive ? "" : " (culled)"}"]`)
+      const kind = pass.kind === "render" ? "" : ` / ${pass.kind}`
+      lines.push(`  ${pass.name}["${pass.name}${kind}${isAlive ? "" : " (culled)"}"]`)
       for (const write of pass.colorWrites) {
         lines.push(`  ${pass.name} --> ${write.handle.name}`)
       }
       if (pass.depthWrite) {
         lines.push(`  ${pass.name} --> ${pass.depthWrite.handle.name}`)
+      }
+      for (const id of pass.storageWrites) {
+        const resource = this.resources[id]!
+        lines.push(`  ${pass.name} --> ${resource.name}`)
       }
       for (const readId of pass.reads) {
         const resource = this.resources[readId]!
@@ -244,12 +357,56 @@ export class RenderGraph {
     return lines.join("\n")
   }
 
+  /**
+   * 导出 JSON + Mermaid（调试 / 验收）。
+   */
+  toJson(): GraphJson {
+    const compiled = this.compile()
+    return {
+      passes: compiled.passes,
+      culled: compiled.culled,
+      resources: this.resources.map((resource) => ({
+        name: resource.name,
+        kind: resource.kind,
+        ...(resource.kind === "transient" ? { format: resource.descriptor.format } : {}),
+      })),
+      aliases: compiled.aliases ?? [],
+      mermaid: this.toMermaid(),
+    }
+  }
+
   // ---- 编译 ----
+
+  private declarationHash(): string {
+    const parts: string[] = []
+    for (const resource of this.resources) {
+      if (resource.kind === "imported") {
+        parts.push(`i:${resource.name}`)
+      } else {
+        parts.push(`t:${resource.name}:${transientKey(resource.descriptor)}`)
+      }
+    }
+    for (const pass of this.passes) {
+      parts.push(
+        [
+          pass.kind,
+          pass.name,
+          [...pass.reads].join(","),
+          this.writesOf(pass).join(","),
+          pass.hasSideEffect ? "1" : "0",
+        ].join("|"),
+      )
+    }
+    return parts.join(";")
+  }
 
   private writesOf(pass: PassNode): number[] {
     const ids = pass.colorWrites.map((write) => write.handle.id)
     if (pass.depthWrite) {
       ids.push(pass.depthWrite.handle.id)
+    }
+    for (const id of pass.storageWrites) {
+      ids.push(id)
     }
     return ids
   }
@@ -289,7 +446,6 @@ export class RenderGraph {
 
   /**
    * 拓扑排序（Kahn），边：写者 → 读者；同一资源多个写者按声明顺序串联。
-   * 平局按声明顺序，保证稳定。
    */
   private sortPasses(alive: Set<PassNode>): PassNode[] {
     const nodes = this.passes.filter((pass) => alive.has(pass))
@@ -310,7 +466,6 @@ export class RenderGraph {
       }
     }
 
-    // 资源 → 写者列表（声明顺序）
     const writers = new Map<number, PassNode[]>()
     for (const node of nodes) {
       for (const id of this.writesOf(node)) {
@@ -324,7 +479,6 @@ export class RenderGraph {
         addEdge(list[i - 1]!, list[i]!)
       }
     }
-    // 读者依赖其之前声明的最后一个写者；若写者全部声明在读者之后，则依赖最后一个写者
     for (const reader of nodes) {
       for (const id of reader.reads) {
         const list = writers.get(id)
@@ -358,6 +512,62 @@ export class RenderGraph {
     return order
   }
 
+  /**
+   * 按编译顺序计算瞬态资源生命区间，同规格不重叠则共享别名槽。
+   */
+  private assignAliases(order: PassNode[]): void {
+    this.aliases = []
+    this.aliasSlotOf.clear()
+    const first = new Map<number, number>()
+    const last = new Map<number, number>()
+    for (let i = 0; i < order.length; i++) {
+      const pass = order[i]!
+      const ids = [...pass.reads, ...this.writesOf(pass)]
+      for (const id of ids) {
+        if (this.resources[id]?.kind !== "transient") {
+          continue
+        }
+        if (!first.has(id)) {
+          first.set(id, i)
+        }
+        last.set(id, i)
+      }
+    }
+
+    interface Slot {
+      key: string
+      last: number
+      index: number
+    }
+    const slots: Slot[] = []
+    const transients = [...first.keys()].sort((a, b) => a - b)
+    for (const id of transients) {
+      const resource = this.resources[id]!
+      const desc = descriptorOf(resource)
+      if (!desc) {
+        continue
+      }
+      const key = transientKey(desc)
+      const start = first.get(id)!
+      const end = last.get(id)!
+      let chosen = slots.find((slot) => slot.key === key && slot.last < start)
+      if (!chosen) {
+        chosen = { key, last: end, index: slots.length }
+        slots.push(chosen)
+      } else {
+        chosen.last = end
+      }
+      const aliasSlot = `${key}#${String(chosen.index)}`
+      this.aliasSlotOf.set(id, aliasSlot)
+      this.aliases.push({
+        resource: resource.name,
+        aliasSlot,
+        firstPass: order[start]!.name,
+        lastPass: order[end]!.name,
+      })
+    }
+  }
+
   // ---- 执行 ----
 
   private assertHandle(handle: TextureHandle): void {
@@ -370,19 +580,35 @@ export class RenderGraph {
     gpu: GPUDevice,
     handle: TextureHandle,
     usedTransients: GPUTexture[],
+    usedKeys: Set<string>,
+    textures: Map<number, GPUTexture>,
   ): GPUTexture {
     const resource = this.resources[handle.id]!
     if (resource.kind === "imported") {
       return resource.texture
     }
-    const key = transientKey(resource.descriptor)
+    const slot = this.aliasSlotOf.get(handle.id)
+    const key = slot ?? transientKey(resource.descriptor)
+    usedKeys.add(transientKey(resource.descriptor))
+    if (slot) {
+      for (const [otherId, existing] of textures) {
+        if (this.aliasSlotOf.get(otherId) === slot) {
+          textures.set(handle.id, existing)
+          return existing
+        }
+      }
+    }
     const pool = this.transientPool.get(key) ?? []
     let texture = pool.pop()
     if (!texture) {
       const descriptor = resource.descriptor
       texture = gpu.createTexture({
         label: makeLabel("TransientTexture", resource.name, PACKAGE_LABEL),
-        size: { width: descriptor.width, height: descriptor.height },
+        size: {
+          width: descriptor.width,
+          height: descriptor.height,
+          depthOrArrayLayers: descriptor.depthOrArrayLayers ?? 1,
+        },
         format: descriptor.format,
         usage: descriptor.usage ?? DEFAULT_TRANSIENT_USAGE,
         sampleCount: descriptor.sampleCount ?? 1,
@@ -390,20 +616,41 @@ export class RenderGraph {
     }
     this.transientPool.set(key, pool)
     usedTransients.push(texture)
+    this.transientKeys.set(texture, key)
     return texture
   }
 
   private releaseTransient(texture: GPUTexture): void {
-    const key = [
-      texture.width,
-      texture.height,
-      texture.format,
-      texture.usage,
-      texture.sampleCount,
-    ].join("|")
+    const tagged = this.transientKeys.get(texture)
+    const key =
+      tagged ??
+      [
+        texture.width,
+        texture.height,
+        texture.depthOrArrayLayers,
+        texture.format,
+        texture.usage,
+        texture.sampleCount,
+      ].join("|")
     const pool = this.transientPool.get(key) ?? []
     pool.push(texture)
     this.transientPool.set(key, pool)
+  }
+
+  /**
+   * 分辨率变化后：销毁本帧未再申请规格的池纹理。
+   */
+  private evictUnusedPool(usedKeys: Set<string>): void {
+    for (const [key, textures] of this.transientPool) {
+      const spec = key.split("#")[0] ?? key
+      if (usedKeys.has(spec) || usedKeys.has(key)) {
+        continue
+      }
+      for (const texture of textures) {
+        texture.destroy()
+      }
+      this.transientPool.delete(key)
+    }
   }
 
   private buildPassDescriptor(
@@ -451,6 +698,7 @@ export class RenderGraph {
     passEncoder: GPURenderPassEncoder,
     pass: PassNode,
     resolveView: (handle: TextureHandle) => GPUTextureView,
+    resolveTexture: (handle: TextureHandle) => GPUTexture,
   ): RenderPassContext {
     const formatOf = (handle: TextureHandle): GPUTextureFormat => {
       const resource = this.resources[handle.id]!
@@ -467,6 +715,7 @@ export class RenderGraph {
       colorFormats,
       depthFormat,
       getTextureView: resolveView,
+      getTexture: resolveTexture,
       drawItems: (items) => {
         drawRenderItems(device, passEncoder, items)
       },

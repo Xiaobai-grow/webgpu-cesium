@@ -110,4 +110,4 @@ flowchart LR
 
 - [x] M0：最小 Render Graph 已落地（2026-09-13）：`renderer/src/graph/RenderGraph.ts` 约 530 行 + `types.ts` 约 85 行（含注释），提供 `addPass / importTexture / createTexture / compile / execute / reset`，编译做未读 pass 裁剪 + 依赖拓扑排序，执行创建单个 `GPUCommandEncoder`；每帧重建一次（Hello Triangle 单 pass）CPU 开销在 Performance 面板中不可见（< 0.1 ms）。多 pass 下的每帧重建成本与「稳定 pass + 动态 RenderItem」策略留 M2 验证。
 - [x] M2：采用「稳定 pass + 动态 RenderItem」（2026-09-13）：每帧重建 graph，pass 集合固定为 `globe`（写 canvas + Reverse-Z 深度），绘制列表由四叉树当帧给出。未做编译结果缓存；单 pass 下重建成本可忽略（示例站 CPU ≈ 1 ms）。
-- [ ] M4：Env 作为插件 pass 组注入帧图的接口是否够用（需要读 G-buffer 深度、写 HDR 颜色）。
+- [x] M4：`HillaireAtmosphere.declareCompute` + `createLightingBindGroup` / `createSkyBindGroup`（2026-09-13）读深度、写 HDR；天空 pass 可关（材质球）而 LUT compute 仍跑。未做成通用「插件 pass 组」接口，够用。

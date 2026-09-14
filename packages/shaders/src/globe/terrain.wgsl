@@ -1,7 +1,7 @@
 // globe/terrain.wgsl
-// 用途：零高度地形前向 Lambert + 单层影像图集。
+// 用途：地形写 G-buffer（影像图集 + 大地水准法线）。光照改由延迟 pass 完成。
 // 依赖 defines：无。
-// override：无（M2 单层；层数用 #if 会增加变体，单层走固定绑定）。
+// override：无。
 // 期望绑定：
 //   group 0 / binding 0 = FrameUniforms
 //   group 1 / binding 0 = texture_2d_array
@@ -11,6 +11,8 @@
 #import "builtin/constants.wgsl"
 #import "builtin/frame.wgsl"
 #import "builtin/transforms.wgsl"
+#import "builtin/color.wgsl"
+#import "materials/gbuffer.wgsl"
 
 struct TileUniforms {
     centerHigh: vec3<f32>,
@@ -45,15 +47,23 @@ fn vsTerrain(input: TerrainVertexInput) -> TerrainVertexOutput {
 }
 
 @fragment
-fn fsTerrain(input: TerrainVertexOutput) -> @location(0) vec4<f32> {
+fn fsTerrain(input: TerrainVertexOutput) -> GBufferFragmentOutput {
     let normal = normalize(input.worldApprox * WGS84_ONE_OVER_RADII_SQUARED);
-    let camera = frame.cameraPositionHigh + frame.cameraPositionLow;
-    let lightDir = normalize(camera);
-    let lambert = max(dot(normal, lightDir), 0.4);
-    var albedo = tile.baseColor.rgb;
+    var albedo = srgbToLinear3(tile.baseColor.rgb);
     if (tile.layerIndex != 0xffffffffu) {
         let sampled = textureSample(imageryAtlas, imagerySampler, input.texcoord, i32(tile.layerIndex));
-        albedo = mix(albedo, sampled.rgb, sampled.a);
+        albedo = mix(albedo, srgbToLinear3(sampled.rgb), sampled.a);
     }
-    return vec4<f32>(albedo * lambert, 1.0);
+    var material: MaterialOutput;
+    material.baseColor = albedo;
+    material.normal = normal;
+    material.roughness = 0.92;
+    material.metalness = 0.0;
+    material.emissive = vec3<f32>(0.0);
+    material.occlusion = 1.0;
+    material.opacity = 1.0;
+    material.materialId = MATERIAL_ID_TERRAIN;
+    material.clearcoat = 0.0;
+    material.clearcoatRoughness = 0.0;
+    return writeGBuffer(material);
 }

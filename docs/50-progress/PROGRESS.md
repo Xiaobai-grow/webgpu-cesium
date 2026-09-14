@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-**M3 完成（分支 `feat/m3-terrain`，未合并 `main`）。** 自定义高度图山体 + 裙边 / 填洞 / `Globe.pick` / `getHeight` / 相机碰地 / Geographic↔Mercator 重投影；量化网格与 `CesiumTerrainProvider` 在 core 可加载（ion 需自备 token）。`hello-terrain?terrain=mars3d` 可测 mars3d 中国地形。M2 已合并 `main`（PR #3）。
+**M4 完成（分支 `feat/m4-lighting-atmosphere`，未合并 `main`）。** 材质基类、G-buffer / 延迟光照、Hillaire 大气、日月星、ACES/Reinhard。示例：`atmosphere-earth`（正午 / 日落 / 夜晚）、`material-spheres`。M3（含 mars3d）已合并 `main`（PR #4）。
 
 ## 里程碑状态
 
@@ -15,8 +15,8 @@
 | M0 脚手架 + 设备 + 三角形 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #1） |
 | M1 core 移植 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #2） |
 | M2 球出现 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #3） |
-| M3 地形 | 完成 | 2026-09-13 | 2026-09-13 | 分支 `feat/m3-terrain`；未开 PR |
-| M4 Render Graph / 光照 / 大气 | 未开始 | — | — | — |
+| M3 地形 | 完成 | 2026-09-13 | 2026-09-13 | 已合并 `main`（PR #4，含 mars3d） |
+| M4 Render Graph / 光照 / 大气 | 完成 | 2026-09-13 | 2026-09-13 | 分支 `feat/m4-lighting-atmosphere`；未开 PR |
 | M5 glTF / 3D Tiles | 未开始 | — | — | — |
 | M6 阴影 / 后处理 / TAA / HDR | 未开始 | — | — | — |
 | M7 云 / 天气 / 海洋 | 未开始 | — | — | ADR-0009 需先确认 |
@@ -102,6 +102,22 @@
 | 3.17 | `hello-terrain` 示例 | 完成 | 示例站山体可见；`?terrain=mars3d` 中国地形 | e2e 用 `?imagery=grid`，不打外网地形 |
 | 3.18 | inventory 中 WMS/WMTS/Bing/Ion 影像 | 未做 | — | 超出里程碑正文 |
 
+## M4 清单（自列）
+
+| # | 任务 | 状态 | 已验证 | 未验证 / 备注 |
+| --- | --- | --- | --- | --- |
+| 4.1 | Render Graph 别名 / `toJson` / `toMermaid` | 完成 | 单测 + `Scene.exportGraph()` | 多队列未做 |
+| 4.2 | G-buffer + 地形写延迟 | 完成 | 地球 / 材质球非黑；`copyTextureToBuffer` | 顶点仍 5-float，法线用大地水准 |
+| 4.3 | FrameUniforms 464B + EnvironmentState | 完成 | 偏移单测 | 不上 `wgsl_reflect` |
+| 4.4 | PBR + 延迟光照 + IBL | 完成 | 材质球金属/粗糙度可辨 | IBL 32²×6，非 64² 预滤波 |
+| 4.5 | Hillaire 四 LUT compute | 完成 | 帧图含 atmosphere-* pass | 多散射 16 方向；集显 timestamp 未测 |
+| 4.6 | 天空 / 日盘 / 月盘 / 星 | 部分 | 正午可见日盘与星；月为程序圆盘 | 无 Hipparcos / NASA 月面；未对天文年历 |
+| 4.7 | `SunLight` / `DirectionalLight` | 完成 | 材质球用 DirectionalLight | — |
+| 4.8 | 简版曝光 + ACES / Reinhard | 完成 | 正午地球不过曝到不可辨 | 未测地表→400 km 能量连续 |
+| 4.9 | 材质 / Texture / Mesh | 完成 | `material-spheres` 4×4 + 清漆行 | 线/点/精灵/Shader 留 M9 |
+| 4.10 | 示例 atmosphere-earth / material-spheres | 完成 | 本机 WebGPU 截图 | 未与 Cesium SkyAtmosphere 对比 |
+| 4.11 | `GpuTimer` | 部分 | 类已实现 | 默认不接入帧图 |
+
 ## 进行中
 
 无。
@@ -112,9 +128,9 @@
 
 ## 下一步
 
-1. 审阅 `feat/m3-terrain`，**不要合并 main**，按需开 PR。
-2. M4：Render Graph 完整化、G-buffer、延迟光照、大气；不要为反射上 `wgsl_reflect` 除非 M4 明确要求。
-3. 补 ion 世界地形山区截图（需 token）；LERC；贴地 `depthBias`（M9）。本地可用 `http://localhost:5173/#/examples/hello-terrain-china?terrain=mars3d` 看四姑娘山一带山地。
+1. 审阅 `feat/m4-lighting-atmosphere`，**不要合并 main**，按需开 PR。
+2. M5：glTF → `MeshPhysicalMaterial` / `MeshBasicMaterial`，3D Tiles 进延迟管线。
+3. 补 400 km 飞行能量连续；ion 山区截图；贴地 `depthBias`；顶点法线 stride。
 
 ## 待验证项汇总（跨文档）
 
@@ -145,8 +161,13 @@ M3（已关闭，结论见各文档「待验证」节）：
 - [x] 仍用每瓦片 uniform，未上动态偏移 / storage（[03](../10-architecture/03-rhi-and-render-graph.md)）
 - [x] Geographic↔Mercator 重投影接线；Worker 默认同步、可注入（[06](../10-architecture/06-globe-terrain-imagery.md)）
 
-M4：
+M4（已关闭，结论见各文档「待验证」节）：
 
-- 材质 group 2 反射布局与 uniform 重写策略成本（[12](../10-architecture/12-material-system.md)）
+- [x] 瞬态别名 / timestamp 默认关闭（[03](../10-architecture/03-rhi-and-render-graph.md)）
+- [x] FrameUniforms 464B ≪ 64 KB（[04](../10-architecture/04-shader-system.md)）
+- [x] Env 读深度写 HDR（[01](../10-architecture/01-overview.md)）
+- [x] LUT 尺寸 / 相对曝光 / 简版星表（[08](../10-architecture/08-atmosphere-sky-celestial.md)）；400 km 飞测未做
+- [x] 全屏片元延迟光照（[10](../10-architecture/10-lighting-shadow-postfx.md)）
+- [x] 材质 group 2 手写整块（[12](../10-architecture/12-material-system.md)）
 
 其余见各架构文档「待验证」节。

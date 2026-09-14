@@ -12,7 +12,11 @@ import {
   type TerrainProvider,
   type TilingScheme,
 } from "@webgpu-cesium/core"
-import { type FrameUniformsBuffer, type RenderItem } from "@webgpu-cesium/renderer"
+import {
+  GBUFFER_COLOR_TARGETS,
+  type FrameUniformsBuffer,
+  type RenderItem,
+} from "@webgpu-cesium/renderer"
 import { makeLabel, type GpuDevice } from "@webgpu-cesium/rhi"
 import { composeShader, SHADER_MODULES } from "@webgpu-cesium/shaders"
 import type { FrameState } from "../FrameState"
@@ -151,7 +155,7 @@ export class GlobeSurfaceTileProvider implements QuadtreeTileProvider {
       fragment: {
         module,
         entryPoint: "fsTerrain",
-        targets: [{ format: options.canvasFormat }],
+        targets: GBUFFER_COLOR_TARGETS,
       },
       primitive: { topology: "triangle-list", cullMode: "back", frontFace: "ccw" },
       depthStencil: {
@@ -711,7 +715,7 @@ export class GlobeSurfaceTileProvider implements QuadtreeTileProvider {
       }
       this.writeTileUniforms(surface, layer)
       items.push({
-        pass: "globe",
+        pass: "gbuffer",
         sortKey: tile.level,
         pipelineKey: this._pipelineKey,
         pipeline: this._pipeline,

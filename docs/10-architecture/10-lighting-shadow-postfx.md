@@ -101,7 +101,7 @@ Cesium `ShadowMap` 的公开选项（`softShadows`、`darkness`、`maximumDistan
 
 ## 待验证
 
-- [ ] M4：延迟光照用全屏片元 vs compute tile 的性能差异。
+- [x] M4：延迟光照用全屏三角形片元（2026-09-13），未做 compute tile。1080p 地球 / 材质球示例 CPU ≈ 1 ms；带宽对比未做。
 - [ ] M6：稳定级联 CSM 在相机快速飞行时的抖动与级联切换可见性。
 - [ ] M6：TAA 对 Globe 影像的清晰度损失是否可接受；是否需要 CAS 式锐化。
 - [ ] M6：HDR 输出在 Windows HDR 显示器上的实际效果与色调映射曲线。

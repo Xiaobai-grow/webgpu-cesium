@@ -1,5 +1,5 @@
 /**
- * Scene：更新相机 → 四叉树 → RenderItem → Render Graph。
+ * Scene：更新相机 / 环境 → 四叉树与网格 → Render Graph（G-buffer / 延迟光照 / 天空 / 色调）。
  */
 import {
   Clock,
@@ -9,18 +9,32 @@ import {
   Matrix4,
   RequestScheduler,
 } from "@webgpu-cesium/core"
+import { EnvironmentState, HillaireAtmosphere } from "@webgpu-cesium/environment"
 import {
   FrameUniformsBuffer,
   type FrameUniformsValues,
+  type GraphJson,
+  GBUFFER_COLOR_USAGE,
+  GBUFFER_DEPTH_USAGE,
+  GBUFFER_FORMATS,
+  HDR_USAGE,
   RenderGraph,
+  SunLight,
   copyTextureToBuffer,
+  createFullscreenPipelines,
+  fullscreenItem,
+  type DirectionalLight,
+  type FullscreenPipelines,
+  type Mesh,
 } from "@webgpu-cesium/renderer"
 import { type GpuDevice } from "@webgpu-cesium/rhi"
 import { Camera } from "./Camera"
 import { CreditDisplay } from "./CreditDisplay"
+import { Fog } from "./Fog"
 import { FrameState } from "./FrameState"
 import { Globe } from "./globe/Globe"
 import { ScreenSpaceCameraController } from "./ScreenSpaceCameraController"
+import { SkyAtmosphere } from "./SkyAtmosphere"
 import { TweenCollection } from "./TweenCollection"
 
 export interface SceneOptions {
@@ -35,11 +49,15 @@ const viewScratch = new Float32Array(16)
 const projScratch = new Float32Array(16)
 const viewProjScratch = new Float32Array(16)
 const invProjScratch = new Float32Array(16)
+const invViewScratch = new Float32Array(16)
 const viewProjMatrix = new Matrix4()
 const invProjMatrix = new Matrix4()
+const invViewMatrix = new Matrix4()
+
+export type ToneMappingMode = "aces" | "reinhard"
 
 /**
- * 最小场景循环。
+ * 场景循环。
  */
 export class Scene {
   readonly canvas: HTMLCanvasElement
@@ -54,12 +72,21 @@ export class Scene {
   readonly postUpdate = new Event<[Scene, JulianDate]>()
   readonly preRender = new Event<[Scene, JulianDate]>()
   readonly postRender = new Event<[Scene, JulianDate]>()
+  readonly skyAtmosphere = new SkyAtmosphere()
+  readonly fog = new Fog()
+  readonly environmentState = new EnvironmentState()
+  readonly atmosphere = new HillaireAtmosphere()
+  readonly meshes: Mesh[] = []
+  light: SunLight | DirectionalLight = new SunLight()
+  toneMapping: ToneMappingMode = "aces"
   requestRenderMode: boolean
   maximumRenderTimeChange = 0.0
   readonly frameState: FrameState
+  lastGraphJson: GraphJson | undefined
   private readonly _graph = new RenderGraph()
   private readonly _frameUniforms: FrameUniformsBuffer
   private readonly _context: GPUCanvasContext
+  private readonly _fullscreen: FullscreenPipelines
   private _frameNumber = 0
   private _renderRequested = true
   private _lastTime = 0
@@ -77,6 +104,12 @@ export class Scene {
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
     })
     this._frameUniforms = new FrameUniformsBuffer(options.device)
+    this.atmosphere.initialize(options.device, this._frameUniforms)
+    this._fullscreen = createFullscreenPipelines(
+      options.device,
+      this._frameUniforms,
+      options.device.canvasFormat,
+    )
     this.camera = new Camera({
       canvas: options.canvas,
       tweens: this.tweens,
@@ -104,6 +137,11 @@ export class Scene {
 
   get ellipsoid() {
     return this.globe.ellipsoid
+  }
+
+  /** 导出最近一帧帧图（Mermaid / JSON） */
+  exportGraph(): GraphJson | undefined {
+    return this.lastGraphJson
   }
 
   /** 请求一帧（requestRenderMode） */
@@ -152,13 +190,17 @@ export class Scene {
     this.frameState.renderItems.length = 0
     this.frameState.afterRender.length = 0
 
+    this.ensureMeshes()
     this.globe.update(this.frameState)
     this.postUpdate.raiseEvent(this, julian)
 
-    const items = this.globe.createRenderItems(this.frameState)
+    const globeItems = this.globe.createRenderItems(this.frameState)
+    const meshItems = this.collectMeshItems()
+    const items = [...globeItems, ...meshItems]
     this.frameState.renderItems.push(...items)
     this.frameState.statistics.renderItemCount = items.length
     this.frameState.statistics.pipelineCount = this.device.pipelines.size
+    this.frameState.lightDirectionWC = this.environmentState.sunDirectionECEF
 
     const terrainCredit = this.globe.terrainProvider.credit
     if (terrainCredit) {
@@ -172,10 +214,10 @@ export class Scene {
     }
     this.creditDisplay.endFrame()
 
-    this.uploadFrameUniforms(delta)
+    this.uploadFrameUniforms(delta, julian)
+    this.atmosphere.updateStars(julian)
     this.preRender.raiseEvent(this, julian)
     this.executeGraph(items)
-    RequestScheduler.update()
     this.frameState.statistics.cpuFrameTimeMs = performance.now() - startCpu
     for (const callback of this.frameState.afterRender) {
       callback()
@@ -189,7 +231,6 @@ export class Scene {
   resize(): boolean {
     const clientWidth = this.canvas.clientWidth
     const clientHeight = this.canvas.clientHeight
-    // 测试里 canvas 可能尚未进入布局（clientWidth=0），保留已设像素尺寸
     if (clientWidth < 1 || clientHeight < 1) {
       return false
     }
@@ -206,11 +247,12 @@ export class Scene {
   }
 
   /**
-   * 填充 FrameUniforms（RTE + Reverse-Z 矩阵）。
+   * 填充 FrameUniforms（RTE + Reverse-Z + EnvironmentState）。
    *
    * @param delta 秒
+   * @param time 儒略日
    */
-  private uploadFrameUniforms(delta: number): void {
+  private uploadFrameUniforms(delta: number, time: JulianDate): void {
     const camera = this.camera
     camera.viewMatrix.toFloat32Array(viewScratch)
     camera.frustum.projectionMatrix.toFloat32Array(projScratch)
@@ -218,7 +260,18 @@ export class Scene {
     viewProjMatrix.toFloat32Array(viewProjScratch)
     Matrix4.inverse(camera.frustum.projectionMatrix, invProjMatrix)
     invProjMatrix.toFloat32Array(invProjScratch)
+    Matrix4.inverse(camera.viewMatrix, invViewMatrix)
+    invViewMatrix.toFloat32Array(invViewScratch)
     EncodedCartesian3.fromCartesian(camera.positionWC, encodedScratch)
+    this.environmentState.update(
+      time,
+      camera.positionWC,
+      viewScratch,
+      this.ellipsoid,
+      this.light,
+      delta,
+    )
+    const env = this.environmentState
     const values: FrameUniformsValues = {
       time: this._frameNumber / 60,
       deltaTime: delta,
@@ -228,39 +281,200 @@ export class Scene {
       projectionMatrix: projScratch,
       viewProjectionMatrix: viewProjScratch,
       inverseProjectionMatrix: invProjScratch,
+      inverseViewMatrix: invViewScratch,
       cameraPositionHigh: [encodedScratch.high.x, encodedScratch.high.y, encodedScratch.high.z],
       cameraPositionLow: [encodedScratch.low.x, encodedScratch.low.y, encodedScratch.low.z],
+      toneMappingMode: this.toneMapping === "reinhard" ? 1 : 0,
+      exposure: env.exposure,
+      moonPhase: env.moonPhase,
+      sunDirectionECEF: [env.sunDirectionECEF.x, env.sunDirectionECEF.y, env.sunDirectionECEF.z],
+      sunDirectionView: [env.sunDirectionView.x, env.sunDirectionView.y, env.sunDirectionView.z],
+      sunIrradiance: [env.sunIrradiance.x, env.sunIrradiance.y, env.sunIrradiance.z],
+      cameraHeight: env.cameraHeight,
+      atmosphereRadius: env.atmosphereRadius,
+      planetRadius: env.planetRadius,
+      aerialPerspectiveEnabled: this.fog.enabled ? 1 : 0,
+      moonDirectionECEF: [
+        env.moonDirectionECEF.x,
+        env.moonDirectionECEF.y,
+        env.moonDirectionECEF.z,
+      ],
+      moonIntensity: env.moonIntensity,
     }
     this._frameUniforms.update(values)
   }
 
   /**
-   * 稳定 pass + 动态 RenderItem。
+   * G-buffer → 光照 → 天空 → 色调映射。
    *
-   * @param items 本帧绘制
+   * @param items 本帧不透明绘制
    */
   private executeGraph(items: FrameState["renderItems"]): void {
     const color = this._context.getCurrentTexture()
     this._lastColorTexture = color
-    const target = this._graph.importTexture("canvas", color)
-    const depth = this._graph.createTexture("depth", {
-      width: this.canvas.width,
-      height: this.canvas.height,
-      format: "depth32float",
+    const width = Math.max(this.canvas.width, 1)
+    const height = Math.max(this.canvas.height, 1)
+    const canvas = this._graph.importTexture("canvas", color)
+    const gb0 = this._graph.createTexture("gb0", {
+      width,
+      height,
+      format: GBUFFER_FORMATS.gb0,
+      usage: GBUFFER_COLOR_USAGE,
     })
+    const gb1 = this._graph.createTexture("gb1", {
+      width,
+      height,
+      format: GBUFFER_FORMATS.gb1,
+      usage: GBUFFER_COLOR_USAGE,
+    })
+    const gb2 = this._graph.createTexture("gb2", {
+      width,
+      height,
+      format: GBUFFER_FORMATS.gb2,
+      usage: GBUFFER_COLOR_USAGE,
+    })
+    const gb3 = this._graph.createTexture("gb3", {
+      width,
+      height,
+      format: GBUFFER_FORMATS.gb3,
+      usage: GBUFFER_COLOR_USAGE,
+    })
+    const depth = this._graph.createTexture("depth", {
+      width,
+      height,
+      format: GBUFFER_FORMATS.depth,
+      usage: GBUFFER_DEPTH_USAGE,
+    })
+    const hdr = this._graph.createTexture("hdr", {
+      width,
+      height,
+      format: GBUFFER_FORMATS.hdr,
+      usage: HDR_USAGE,
+    })
+
+    this.atmosphere.declareCompute(
+      this._graph,
+      this._frameUniforms,
+      this.environmentState.sunDirectionECEF,
+    )
+
     this._graph.addPass(
-      "globe",
+      "gbuffer",
       (builder) => {
-        builder.writeColor(target, {
-          clearValue: { r: 0.02, g: 0.03, b: 0.08, a: 1 },
-        })
+        builder.writeColor(gb0)
+        builder.writeColor(gb1)
+        builder.writeColor(gb2)
+        builder.writeColor(gb3)
         builder.writeDepth(depth, { depthClearValue: 0 })
       },
       (ctx) => {
         ctx.drawItems(items)
       },
     )
+
+    this._graph.addPass(
+      "lighting",
+      (builder) => {
+        builder.read(gb0)
+        builder.read(gb1)
+        builder.read(gb2)
+        builder.read(gb3)
+        builder.read(depth)
+        builder.writeColor(hdr)
+      },
+      (ctx) => {
+        const lightingBg = this.atmosphere.createLightingBindGroup(
+          this.device,
+          this._fullscreen.lightingLayout,
+          {
+            gb0: ctx.getTextureView(gb0),
+            gb1: ctx.getTextureView(gb1),
+            gb2: ctx.getTextureView(gb2),
+            gb3: ctx.getTextureView(gb3),
+            depth: ctx.getTextureView(depth),
+          },
+        )
+        ctx.drawItems([
+          fullscreenItem("lighting", this._fullscreen.lighting, this._fullscreen.lightingKey, [
+            this._frameUniforms.bindGroup,
+            lightingBg,
+          ]),
+        ])
+      },
+    )
+
+    if (this.skyAtmosphere.show) {
+      this._graph.addPass(
+        "sky",
+        (builder) => {
+          builder.read(depth)
+          builder.writeColor(hdr, { loadOp: "load" })
+        },
+        (ctx) => {
+          const skyBg = this.atmosphere.createSkyBindGroup(
+            this.device,
+            this._fullscreen.skyLayout,
+            ctx.getTextureView(depth),
+          )
+          ctx.drawItems([
+            fullscreenItem("sky", this._fullscreen.sky, this._fullscreen.skyKey, [
+              this._frameUniforms.bindGroup,
+              skyBg,
+            ]),
+          ])
+        },
+      )
+    }
+
+    const hdrSampler = this.device.samplers.get({ magFilter: "linear", minFilter: "linear" })
+    this._graph.addPass(
+      "tonemap",
+      (builder) => {
+        builder.read(hdr)
+        builder.writeColor(canvas)
+      },
+      (ctx) => {
+        const toneBg = this.device.device.createBindGroup({
+          label: "renderer/BindGroup/tonemap",
+          layout: this._fullscreen.tonemapLayout,
+          entries: [
+            { binding: 0, resource: ctx.getTextureView(hdr) },
+            { binding: 1, resource: hdrSampler },
+          ],
+        })
+        ctx.drawItems([
+          fullscreenItem("tonemap", this._fullscreen.tonemap, this._fullscreen.tonemapKey, [
+            this._frameUniforms.bindGroup,
+            toneBg,
+          ]),
+        ])
+      },
+    )
+
+    this.lastGraphJson = this._graph.toJson()
     this._graph.execute(this.device)
+    RequestScheduler.update()
+  }
+
+  private ensureMeshes(): void {
+    for (const mesh of this.meshes) {
+      if (!mesh.initialized) {
+        mesh.initialize(this.device, this._frameUniforms)
+      }
+    }
+  }
+
+  private collectMeshItems() {
+    const items = []
+    this.ensureMeshes()
+    for (const mesh of this.meshes) {
+      mesh.uploadUniforms(this.device)
+      const item = mesh.createRenderItem(this._frameUniforms)
+      if (item) {
+        items.push(item)
+      }
+    }
+    return items
   }
 
   /**
@@ -281,6 +495,10 @@ export class Scene {
     this._destroyed = true
     this.screenSpaceCameraController.destroy()
     this.globe.destroy()
+    for (const mesh of this.meshes) {
+      mesh.destroy()
+    }
+    this.atmosphere.destroy()
     this._frameUniforms.destroy()
     this._graph.destroy()
   }

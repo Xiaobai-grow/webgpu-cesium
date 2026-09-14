@@ -134,6 +134,57 @@ describe("RenderGraph.compile", () => {
     expect(text).toContain("flowchart LR")
     expect(text).toContain("main --> canvas")
   })
+
+  it("toJson 含别名与 mermaid", () => {
+    const graph = new RenderGraph()
+    const canvas = graph.importTexture("canvas", fakeTexture())
+    const a = graph.createTexture("a", { width: 4, height: 4, format: "rgba8unorm" })
+    const b = graph.createTexture("b", { width: 4, height: 4, format: "rgba8unorm" })
+    graph.addPass("first", (builder) => builder.writeColor(a), noop)
+    graph.addPass(
+      "second",
+      (builder) => {
+        builder.read(a)
+        builder.writeColor(b)
+      },
+      noop,
+    )
+    graph.addPass(
+      "out",
+      (builder) => {
+        builder.read(b)
+        builder.writeColor(canvas)
+      },
+      noop,
+    )
+    const json = graph.toJson()
+    expect(json.passes).toEqual(["first", "second", "out"])
+    expect(json.mermaid).toContain("first --> a")
+    expect(json.aliases.length).toBeGreaterThan(0)
+  })
+
+  it("compute pass 写入被读取时存活", () => {
+    const graph = new RenderGraph()
+    const canvas = graph.importTexture("canvas", fakeTexture())
+    const lut = graph.createTexture("lut", { width: 8, height: 8, format: "rgba16float" })
+    graph.addComputePass(
+      "lut",
+      (builder) => {
+        builder.writeStorage(lut)
+      },
+      noop,
+    )
+    graph.addPass(
+      "use",
+      (builder) => {
+        builder.read(lut)
+        builder.writeColor(canvas)
+      },
+      noop,
+    )
+    expect(graph.compile().passes).toEqual(["lut", "use"])
+    expect(graph.toMermaid()).toContain("lut / compute")
+  })
 })
 
 const probe = await GpuDevice.probe()

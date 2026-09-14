@@ -56,7 +56,7 @@ M3 与 M4 可并行；M5 依赖 M4 的 RenderItem / 材质接口稳定；M7 / M8
 
 ## M3 地形
 
-- **状态**：完成（2026-09-13，分支 `feat/m3-terrain`，未合并 `main`）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
+- **状态**：完成（2026-09-13，已合并 `main`，PR #4）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
 - **目标**：Cesium 世界地形（quantized-mesh）与自定义高度图可加载，含法线、裙边、填充网格、垂直夸张、地形拾取。
 - **范围**：`CesiumTerrainProvider`、`QuantizedMeshTerrainData`、`HeightmapTerrainData`、`TerrainEncoding` / `TerrainQuantization` / `TerrainMesh`、`createVerticesFromQuantizedTerrainMesh` / `upsampleQuantizedTerrainMesh` / `createVerticesFromHeightmap` Worker、`TerrainFillMesh`、`TileAvailability`、`ApproximateTerrainHeights`、`VerticalExaggeration`、`Globe.pick` / `getHeight`、`sampleTerrain(MostDetailed)`、`CustomHeightmapTerrainProvider`、`ArcGISTiledElevationTerrainProvider`、`Cesium3DTilesTerrainProvider`（若时间允许）、水面掩码输入、相机地形碰撞。
 - **不做**：地形光照升级（M4 之后由 G-buffer 处理）；海洋。
@@ -65,6 +65,7 @@ M3 与 M4 可并行；M5 依赖 M4 的 RenderItem / 材质接口稳定；M7 / M8
 
 ## M4 Render Graph、Reverse-Z / RTE 落地、延迟光照、大气与天体
 
+- **状态**：完成（2026-09-13，分支 `feat/m4-lighting-atmosphere`，未合并 `main`）。清单与偏离见 [50-progress/PROGRESS.md](../50-progress/PROGRESS.md)。
 - **目标**：完整帧图；G-buffer + 延迟光照；Hillaire 大气；太阳 / 月亮 / 星空由时间驱动；空气透视替代雾。
 - **范围**：Render Graph 完整实现（编译、别名、调试导出）、G-buffer 布局、`FrameUniforms` 定型、PBR 光照函数、IBL（天空生成）、Hillaire 四 LUT compute、天空 pass、日盘 / 月盘 / 星表、`SunLight` / `DirectionalLight`、`EnvironmentState`、自动曝光（简版）、Reinhard / ACES 色调映射（简版，完整版 M6）、地形写 G-buffer、高低位 RTE 模块（为 M9 图元准备）、**材质系统基础**：`Material` / `Texture` 基类、`MeshBasicMaterial`、`MeshStandardMaterial`、`MeshPhysicalMaterial`（供 M5 glTF 映射）、`MaterialOutput` 契约、group 2 反射布局、`onBeforeCompose` 接口点、一个测试用球体 / 立方体图元验证材质。
 - **不做**：阴影、TAA、Bloom、云、线 / 点 / 精灵 / Shader 材质。

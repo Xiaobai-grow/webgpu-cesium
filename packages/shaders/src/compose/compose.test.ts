@@ -327,19 +327,17 @@ fn shared() {}
 })
 
 describe("地形着色器组合", () => {
-  it("terrain.wgsl 组合含 RTE 与 Lambert", () => {
+  it("terrain.wgsl 组合含 RTE 与 G-buffer 输出", () => {
     const result = composeShader({
       entry: "globe/terrain.wgsl",
       modules: SHADER_MODULES,
     })
-    expect(result.modules).toEqual([
-      "builtin/constants.wgsl",
-      "builtin/frame.wgsl",
-      "builtin/transforms.wgsl",
-      "globe/terrain.wgsl",
-    ])
+    expect(result.modules).toContain("builtin/transforms.wgsl")
+    expect(result.modules).toContain("materials/gbuffer.wgsl")
+    expect(result.modules).toContain("globe/terrain.wgsl")
     expect(result.code).toContain("fn rteToEye")
     expect(result.code).toContain("fn vsTerrain")
+    expect(result.code).toContain("fn writeGBuffer")
     expect(result.code).toContain("texture_2d_array")
     expect(result.code).toMatchSnapshot()
   })
@@ -358,6 +356,24 @@ describe("地形着色器组合", () => {
     })
     expect(mercator.code).toContain("fn geographicToMercatorV")
     expect(mercator.code).toMatchSnapshot()
+  })
+})
+
+describe("M4 着色器组合", () => {
+  it("延迟光照与大气模块可组合", () => {
+    const lighting = composeShader({ entry: "lighting/deferred.wgsl", modules: SHADER_MODULES })
+    expect(lighting.code).toContain("fn evaluateBrdf")
+    expect(lighting.code).toContain("fn octDecode")
+    expect(lighting.code).not.toMatch(/fn evaluateBrdf[\s\S]*fn evaluateBrdf/)
+    const sky = composeShader({ entry: "atmosphere/sky.wgsl", modules: SHADER_MODULES })
+    expect(sky.code).toContain("fn fsSky")
+    const mesh = composeShader({
+      entry: "materials/mesh.wgsl",
+      modules: SHADER_MODULES,
+      defines: { HAS_MAP: 1 },
+    })
+    expect(mesh.code).toContain("fn vsMesh")
+    expect(mesh.code).toContain("textureSample(materialMap")
   })
 })
 

@@ -80,6 +80,9 @@ importers:
       '@webgpu-cesium/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@webgpu-cesium/environment':
+        specifier: workspace:*
+        version: link:../../packages/environment
       '@webgpu-cesium/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
@@ -120,6 +123,21 @@ importers:
 
   packages/core: {}
 
+  packages/environment:
+    dependencies:
+      '@webgpu-cesium/core':
+        specifier: workspace:*
+        version: link:../core
+      '@webgpu-cesium/renderer':
+        specifier: workspace:*
+        version: link:../renderer
+      '@webgpu-cesium/rhi':
+        specifier: workspace:*
+        version: link:../rhi
+      '@webgpu-cesium/shaders':
+        specifier: workspace:*
+        version: link:../shaders
+
   packages/renderer:
     dependencies:
       '@webgpu-cesium/core':
@@ -143,6 +161,9 @@ importers:
       '@webgpu-cesium/core':
         specifier: workspace:*
         version: link:../core
+      '@webgpu-cesium/environment':
+        specifier: workspace:*
+        version: link:../environment
       '@webgpu-cesium/renderer':
         specifier: workspace:*
         version: link:../renderer
@@ -168,6 +189,9 @@ importers:
       '@webgpu-cesium/core':
         specifier: workspace:*
         version: link:../core
+      '@webgpu-cesium/environment':
+        specifier: workspace:*
+        version: link:../environment
       '@webgpu-cesium/renderer':
         specifier: workspace:*
         version: link:../renderer

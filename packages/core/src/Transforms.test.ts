@@ -42,4 +42,21 @@ describe("Transforms", () => {
   it("computeIcrfToFixedMatrix 在 XYS/EOP 未就绪时返回 undefined", () => {
     expect(Transforms.computeIcrfToFixedMatrix(JulianDate.now())).toBeUndefined()
   })
+
+  it("computeTemeToPseudoFixedMatrix 是绕 Z 的旋转", () => {
+    const matrix = Transforms.computeTemeToPseudoFixedMatrix(new JulianDate(2451545, 43200))
+    const col0 = new Cartesian3(matrix[0] ?? 0, matrix[1] ?? 0, matrix[2] ?? 0)
+    const col1 = new Cartesian3(matrix[3] ?? 0, matrix[4] ?? 0, matrix[5] ?? 0)
+    const col2 = new Cartesian3(matrix[6] ?? 0, matrix[7] ?? 0, matrix[8] ?? 0)
+    expect(Cartesian3.magnitudeSquared(col0)).toBeCloseTo(1, 10)
+    expect(Cartesian3.magnitudeSquared(col1)).toBeCloseTo(1, 10)
+    expect(Math.abs(col2.z)).toBeCloseTo(1, 12)
+    expect(Math.abs(Cartesian3.dot(col0, col1))).toBeLessThan(CesiumMath.EPSILON10)
+    const fallback = Transforms.computeIcrfToCentralBodyFixedMatrix(JulianDate.now())
+    expect(
+      Cartesian3.magnitudeSquared(
+        new Cartesian3(fallback[0] ?? 0, fallback[1] ?? 0, fallback[2] ?? 0),
+      ),
+    ).toBeCloseTo(1, 10)
+  })
 })
