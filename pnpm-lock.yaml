@@ -95,6 +95,9 @@ importers:
       '@webgpu-cesium/shaders':
         specifier: workspace:*
         version: link:../../packages/shaders
+      '@webgpu-cesium/tiles':
+        specifier: workspace:*
+        version: link:../../packages/tiles
       '@webgpu-cesium/widgets':
         specifier: workspace:*
         version: link:../../packages/widgets
@@ -173,6 +176,9 @@ importers:
       '@webgpu-cesium/shaders':
         specifier: workspace:*
         version: link:../shaders
+      '@webgpu-cesium/tiles':
+        specifier: workspace:*
+        version: link:../tiles
 
   packages/shaders:
     dependencies:
@@ -183,6 +189,21 @@ importers:
       '@webgpu-cesium/wgsl-plugin':
         specifier: workspace:*
         version: link:../../tools/wgsl-plugin
+
+  packages/tiles:
+    dependencies:
+      '@webgpu-cesium/core':
+        specifier: workspace:*
+        version: link:../core
+      '@webgpu-cesium/renderer':
+        specifier: workspace:*
+        version: link:../renderer
+      '@webgpu-cesium/rhi':
+        specifier: workspace:*
+        version: link:../rhi
+      '@webgpu-cesium/shaders':
+        specifier: workspace:*
+        version: link:../shaders
 
   packages/webgpu-cesium:
     dependencies:
@@ -204,6 +225,9 @@ importers:
       '@webgpu-cesium/shaders':
         specifier: workspace:*
         version: link:../shaders
+      '@webgpu-cesium/tiles':
+        specifier: workspace:*
+        version: link:../tiles
       '@webgpu-cesium/widgets':
         specifier: workspace:*
         version: link:../widgets

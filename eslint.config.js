@@ -54,6 +54,7 @@ const PACKAGE_BOUNDARIES = {
     "@webgpu-cesium/widgets",
     "@webgpu-cesium/webgpu-cesium",
   ],
+  tiles: ["@webgpu-cesium/scene", "@webgpu-cesium/widgets", "@webgpu-cesium/webgpu-cesium"],
   scene: ["@webgpu-cesium/widgets", "@webgpu-cesium/webgpu-cesium"],
 }
 

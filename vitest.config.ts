@@ -2,7 +2,7 @@
  * Vitest 根配置。
  *
  * Vitest 4 起 `vitest.workspace.*` 被移除，改为 `test.projects`（见 LOG 2026-09-13 [变更]）。
- * - Node 项目：core / shaders / scene（纯逻辑，CI 必须全绿）
+ * - Node 项目：core / shaders / scene / tiles / environment（纯逻辑，CI 必须全绿）
  * - 浏览器项目：rhi / renderer / scene-gpu（Playwright Chromium；无 GPU 时用例自行 skip）
  */
 import { fileURLToPath } from "node:url"
@@ -20,6 +20,7 @@ const workspaceAlias = {
   "@webgpu-cesium/renderer": `${root}packages/renderer/src/index.ts`,
   "@webgpu-cesium/environment": `${root}packages/environment/src/index.ts`,
   "@webgpu-cesium/scene": `${root}packages/scene/src/index.ts`,
+  "@webgpu-cesium/tiles": `${root}packages/tiles/src/index.ts`,
   "@webgpu-cesium/widgets": `${root}packages/widgets/src/index.ts`,
 }
 
@@ -81,6 +82,15 @@ export default defineConfig({
           name: "environment",
           environment: "node",
           include: ["packages/environment/src/**/*.test.ts"],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "tiles",
+          environment: "node",
+          include: ["packages/tiles/src/**/*.test.ts"],
+          exclude: ["packages/tiles/src/**/*.render.test.ts"],
         },
       },
       {
